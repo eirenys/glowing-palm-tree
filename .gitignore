@@ -1,6 +1,9 @@
 # Idea Files
-.idea
+.idea/
+.vertx/
+target/
 *.iml
+
 # Compiled class file
 *.class
 
