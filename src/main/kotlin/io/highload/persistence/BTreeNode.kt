@@ -15,17 +15,42 @@ class BTreeNode<K, V>(val comparator: Comparator<K>, capacity: Int) : Iterable<P
             var index = 0
             override fun hasNext(): Boolean = (index < size)
 
-            @Suppress("UNCHECKED_CAST")
             override fun next(): Pair<K, V> {
                 val i = index
                 index++
-                return keys[i] as K to values[i] as V
+                return getKey(i) to getValue(i)
             }
         }
     }
 
-    fun findIndex(key: K): Int {
-        return 0
+    @Suppress("UNCHECKED_CAST")
+    fun getKey(index: Int): K = keys[index] as K
+
+    @Suppress("UNCHECKED_CAST")
+    fun getValue(index: Int): V = values[index] as V
+
+    fun findIndex(key: K): KeyIndex {
+        var low = 0
+        var high = size - 1
+
+        var mid = 0
+        var greater = false
+
+        while (low <= high) {
+            mid = (low + high) ushr 1
+            val cmp = comparator.compare(key, getKey(mid))
+            if (cmp == 0) {
+                return KeyIndex(true, mid)
+            } else if (cmp > 0) {
+                low = mid + 1
+                greater = true
+            } else {
+                high = mid - 1
+                greater = false
+            }
+        }
+        val idx = if (greater) mid + 1 else mid
+        return KeyIndex(false, idx)
     }
 
     fun insert(index: Int, key: K, value: V) {
