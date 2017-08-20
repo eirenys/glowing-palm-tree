@@ -7,8 +7,9 @@ import java.util.*
  */
 class BTreeNode<K, V>(val comparator: Comparator<K>, capacity: Int) : Iterable<Pair<K, V>> {
     private var size = 0
-    private val keys: Array<Any?> = arrayOfNulls(capacity)
-    private val values: Array<Any?> = arrayOfNulls(capacity)
+    private val keys = arrayOfNulls<Any?>(capacity)
+    private val values = arrayOfNulls<Any?>(capacity)
+    private val buffer = arrayOfNulls<Any?>(capacity)
 
     override fun iterator(): Iterator<Pair<K, V>> {
         return object : Iterator<Pair<K, V>> {
@@ -58,8 +59,6 @@ class BTreeNode<K, V>(val comparator: Comparator<K>, capacity: Int) : Iterable<P
             throw ArrayIndexOutOfBoundsException(index)
         }
 
-        val buffer = arrayOfNulls<Any?>(size)
-
         System.arraycopy(keys, index, buffer, 0, size - index)
         keys[index] = key
         System.arraycopy(buffer, 0, keys, index + 1, size - index)
@@ -69,5 +68,27 @@ class BTreeNode<K, V>(val comparator: Comparator<K>, capacity: Int) : Iterable<P
         System.arraycopy(buffer, 0, values, index + 1, size - index)
 
         size++
+    }
+
+    fun replace(index: Int, key: K, value: V) {
+        if (index >= size) {
+            throw ArrayIndexOutOfBoundsException(index)
+        }
+
+        keys[index] = key
+        values[index] = value
+    }
+
+    fun remove(index: Int) {
+        if (index >= size) {
+            throw ArrayIndexOutOfBoundsException(index)
+        }
+
+        System.arraycopy(keys, index + 1, buffer, 0, size - index - 1)
+        System.arraycopy(buffer, 0, keys, index, size - index - 1)
+        System.arraycopy(values, index + 1, buffer, 0, size - index - 1)
+        System.arraycopy(buffer, 0, values, index, size - index - 1)
+
+        size--
     }
 }

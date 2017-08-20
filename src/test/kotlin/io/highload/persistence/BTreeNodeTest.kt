@@ -109,4 +109,21 @@ class BTreeNodeTest {
         treeNode.insert(2, 30, 31)
         assertEquals(listOf(10 to 11, 20 to 21, 30 to 31), treeNode.toList())
     }
+
+    @Test
+    fun replaceTest() {
+        treeNode.insert(0, 10, 11)
+        treeNode.replace(0, 10, 12)
+
+        assertEquals(listOf(10 to 12), treeNode.toList())
+    }
+
+    @Test
+    fun removeTest() {
+        treeNode.insert(0, 10, 11)
+        treeNode.insert(1, 20, 21)
+        treeNode.remove(0)
+
+        assertEquals(listOf(20 to 21), treeNode.toList())
+    }
 }
