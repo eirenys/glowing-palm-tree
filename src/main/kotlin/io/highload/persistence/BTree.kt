@@ -9,23 +9,34 @@ class BTree<K, V>(val comparator: Comparator<K>, val nodeSize: Int = 64) : Itera
 
     fun put(key: K, value: V): Boolean {
         val node = findNode(key)
-        node
+        val index = node.findIndex(key)
+        if (index.exists) {
+            node.replace(index.position, key, value)
+        } else {
+            node.insert(index.position, key, value)
+        }
         return false
     }
 
     override fun iterator(): Iterator<Pair<K, V>> {
-//        return object : Iterator<Pair<K, V>> {
-//            var index = 0
-//
-//            override fun hasNext(): Boolean = (index < size)
-//
-//            override fun next(): Pair<K, V> {
-//                val node = nodes[index]!!
-//                index++
-//                return node.key to node.value
-//            }
-//        }
-        TODO()
+        return object : Iterator<Pair<K, V>> {
+            var index = 0
+            var inner = nodes[0].iterator()
+
+            override fun hasNext(): Boolean {
+                while (index < nodes.size - 1) {
+                    if (inner.hasNext()) {
+                        return true
+                    } else {
+                        index++
+                        inner = nodes[index].iterator()
+                    }
+                }
+                return inner.hasNext()
+            }
+
+            override fun next(): Pair<K, V> = inner.next()
+        }
     }
 
     @Suppress("UNCHECKED_CAST")

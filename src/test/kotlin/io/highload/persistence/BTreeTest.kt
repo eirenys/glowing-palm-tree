@@ -7,7 +7,7 @@ import org.junit.Test
  *
  */
 class BTreeTest {
-    val tree = BTree<Int, Int>(Comparator { o1, o2 -> o1.compareTo(o2) }, 8)
+    val tree = BTree<Int, Int>(Comparator { o1, o2 -> o1.compareTo(o2) }, 4)
 
     @Test
     fun putTest() {

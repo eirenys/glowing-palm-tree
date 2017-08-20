@@ -8,7 +8,7 @@ import kotlin.test.assertFails
  *
  */
 class BTreeNodeTest {
-    val treeNode = BTreeNode<Int, Int>(Comparator { o1, o2 -> o1.compareTo(o2) }, 8)
+    val treeNode = BTreeNode<Int, Int>(Comparator { o1, o2 -> o1.compareTo(o2) }, 4)
 
     @Test
     fun getKeyValueTest() {
@@ -79,10 +79,6 @@ class BTreeNodeTest {
             treeNode.insert(2, 30, 31)
             treeNode.insert(3, 40, 41)
             treeNode.insert(4, 50, 51)
-            treeNode.insert(5, 60, 61)
-            treeNode.insert(6, 70, 71)
-            treeNode.insert(7, 80, 81)
-            treeNode.insert(8, 90, 91)
         }
     }
 

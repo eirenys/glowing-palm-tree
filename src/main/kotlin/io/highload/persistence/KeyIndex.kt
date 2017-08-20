@@ -3,4 +3,4 @@ package io.highload.persistence
 /**
  *
  */
-data class KeyIndex(val exists: Boolean, val index: Int)
+data class KeyIndex(val exists: Boolean, val position: Int)
