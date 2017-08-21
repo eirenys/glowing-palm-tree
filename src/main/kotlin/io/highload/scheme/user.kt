@@ -1,13 +1,19 @@
 package io.highload.scheme
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 /**
  *
  */
-class UserEntity {
+class Users {
+    var users = emptyList<User>()
+}
+
+class User {
     var id: Int = 0
     var email: String = ""
-    var firstName: String = ""
-    var lastName: String = ""
+    @JsonProperty("first_name") var firstName: String = ""
+    @JsonProperty("last_name") var lastName: String = ""
     var gender: Char = 'm'
-    var birthDate: Long = 0
+    @JsonProperty("birth_date") var birthDate: Long = 0
 }

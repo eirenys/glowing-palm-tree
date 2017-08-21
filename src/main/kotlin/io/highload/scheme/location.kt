@@ -3,7 +3,11 @@ package io.highload.scheme
 /**
  *
  */
-class LocationEntity {
+class Locations {
+    var locations = emptyList<Location>()
+}
+
+class Location {
     var id: Int = 0
     var place: String = ""
     var country: String = ""
