@@ -11,6 +11,8 @@ class BTreeNode<K, V>(val comparator: Comparator<K>, capacity: Int) : Iterable<P
     private val values = arrayOfNulls<Any?>(capacity)
     private val buffer = arrayOfNulls<Any?>(capacity)
 
+    val freeSpace: Int get() = keys.size - size
+
     override fun iterator(): Iterator<Pair<K, V>> {
         return object : Iterator<Pair<K, V>> {
             var index = 0
@@ -90,5 +92,23 @@ class BTreeNode<K, V>(val comparator: Comparator<K>, capacity: Int) : Iterable<P
         System.arraycopy(buffer, 0, values, index, size - index - 1)
 
         size--
+    }
+
+    /**
+     * Разделение нода, текущий нод получает значения до индекса не включительно, а новый всё остальное
+     * При идексе == 0, текущий станет пустым, а новый получит все элементы
+     */
+    fun split(index: Int): BTreeNode<K, V> {
+        if (index >= size) {
+            throw ArrayIndexOutOfBoundsException(index)
+        }
+
+        val new = BTreeNode<K, V>(comparator, keys.size)
+        System.arraycopy(keys, index, new.keys, 0, size - index)
+        System.arraycopy(values, index, new.values, 0, size - index)
+        new.size = size - index
+        size = index
+
+        return new
     }
 }

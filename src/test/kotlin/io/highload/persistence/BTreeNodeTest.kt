@@ -122,4 +122,16 @@ class BTreeNodeTest {
 
         assertEquals(listOf(20 to 21), treeNode.toList())
     }
+
+    @Test
+    fun splitTest() {
+        treeNode.insert(0, 10, 11)
+        treeNode.insert(1, 20, 21)
+        treeNode.insert(2, 30, 31)
+        treeNode.insert(3, 40, 41)
+        val new = treeNode.split(1)
+
+        assertEquals(listOf(10 to 11), treeNode.toList())
+        assertEquals(listOf(20 to 21, 30 to 31, 40 to 41), new.toList())
+    }
 }
