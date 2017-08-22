@@ -20,4 +20,6 @@ abstract class JsonConverter {
     abstract fun formatUser(out: OutputStream, obj: User)
     abstract fun formatLocation(out: OutputStream, obj: Location)
     abstract fun formatVisit(out: OutputStream, obj: Visit)
+    abstract fun formatVisits(out: OutputStream, obj: Visits2)
+    abstract fun formatAvg(out: OutputStream, obj: Avg)
 }

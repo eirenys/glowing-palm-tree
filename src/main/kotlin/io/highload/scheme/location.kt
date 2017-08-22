@@ -1,5 +1,7 @@
 package io.highload.scheme
 
+import java.math.BigDecimal
+
 /**
  *
  */
@@ -62,3 +64,5 @@ class Location {
         private const val ALL = 0x1F
     }
 }
+
+class Avg(val avg: BigDecimal)

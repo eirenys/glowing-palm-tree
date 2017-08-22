@@ -44,4 +44,12 @@ class JacksonConverter(val mapper: ObjectMapper) : JsonConverter() {
     override fun formatVisit(out: OutputStream, obj: Visit) {
         mapper.writeValue(out, obj)
     }
+
+    override fun formatVisits(out: OutputStream, obj: Visits2) {
+        mapper.writeValue(out, obj)
+    }
+
+    override fun formatAvg(out: OutputStream, obj: Avg) {
+        mapper.writeValue(out, obj)
+    }
 }

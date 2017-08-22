@@ -65,3 +65,14 @@ class Visit {
         private const val ALL = 0x1F
     }
 }
+
+class Visits2(val visits: List<Visit2>)
+
+class Visit2(visit: Visit, location: Location) {
+    val mark = visit.mark
+
+    @JsonProperty("visited_at")
+    val vistedAt = visit.visitedAt
+
+    val place = location.place
+}
