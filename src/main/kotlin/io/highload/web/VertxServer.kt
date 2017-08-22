@@ -1,7 +1,7 @@
-package io.highload
+package io.highload.web
 
+import io.highload.PORT
 import io.highload.dao.EntityDao
-import io.highload.json.JsonConverter
 import io.highload.scheme.Avg
 import io.highload.scheme.Visits2
 import io.vertx.core.Vertx
@@ -39,7 +39,7 @@ class VertxServer(val dao: EntityDao, val converter: JsonConverter, val context:
             }
         }.listen(PORT) {
             if (it.succeeded()) {
-                println("listening port: $PORT")
+                println("listening port: ${PORT}")
             } else {
                 it.cause().printStackTrace()
             }

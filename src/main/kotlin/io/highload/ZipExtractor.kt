@@ -1,7 +1,7 @@
 package io.highload
 
 import io.highload.dao.EntityDao
-import io.highload.json.JsonConverter
+import io.highload.web.JsonConverter
 import kotlinx.coroutines.experimental.launch
 import java.io.File
 import java.util.zip.ZipFile

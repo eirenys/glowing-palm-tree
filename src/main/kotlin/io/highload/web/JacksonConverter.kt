@@ -1,4 +1,4 @@
-package io.highload.json
+package io.highload.web
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.highload.scheme.*

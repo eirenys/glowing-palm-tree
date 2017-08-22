@@ -1,4 +1,4 @@
-package io.highload.json
+package io.highload.web
 
 import io.highload.scheme.*
 import java.io.InputStream

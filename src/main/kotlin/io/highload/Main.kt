@@ -4,7 +4,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.highload.dao.StubDao
-import io.highload.json.JacksonConverter
+import io.highload.web.JacksonConverter
+import io.highload.web.VertxServer
 import kotlinx.coroutines.experimental.CommonPool
 
 /**
