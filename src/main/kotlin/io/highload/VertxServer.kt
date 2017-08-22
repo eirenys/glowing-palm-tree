@@ -9,7 +9,6 @@ import io.vertx.core.http.HttpMethod
 import io.vertx.core.http.HttpServerResponse
 import kotlinx.coroutines.experimental.launch
 import org.joda.time.DateTime
-import org.joda.time.Years
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import kotlin.coroutines.experimental.CoroutineContext
@@ -87,6 +86,7 @@ class VertxServer(val dao: EntityDao, val converter: JsonConverter, val context:
                     }
                 }
                 val visits = dao.findVisits(id, country, fromDate, toDate, toDistance)
+                        ?: return null
                 val out = ByteArrayOutputStream()
                 converter.formatVisits(out, Visits2(visits))
                 return out.toString()
@@ -112,12 +112,13 @@ class VertxServer(val dao: EntityDao, val converter: JsonConverter, val context:
                     when(pair[0]) {
                         "fromDate" -> fromDate = pair[1].toLong()
                         "toDate" -> toDate = pair[1].toLong()
-                        "fromAge" -> toBirth = (DateTime.now() - Years.years(pair[1].toInt())).millis
-                        "toAge" -> fromBirth = (DateTime.now() - Years.years(pair[1].toInt())).millis
+                        "fromAge" -> toBirth = DateTime.now().minusYears(pair[1].toInt()).millis / 1000
+                        "toAge" -> fromBirth = DateTime.now().minusYears(pair[1].toInt()).millis / 1000
                         "gender" -> gender = pair[1].first()
                     }
                 }
                 val avg = dao.avg(id, fromDate, toDate, fromBirth, toBirth, gender)
+                        ?: return null
                 val out = ByteArrayOutputStream()
                 converter.formatAvg(out, Avg(avg))
                 return out.toString()

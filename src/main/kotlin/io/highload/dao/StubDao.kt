@@ -7,6 +7,7 @@ import io.highload.scheme.Visit2
 import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.*
 
 /**
@@ -82,7 +83,10 @@ class StubDao : EntityDao() {
     }
 
     override suspend fun findVisits(userId: Int, country: String?, fromDate: Long?, toDate: Long?, toDistance: Int?)
-            : List<Visit2> = mutex.withLock {
+            : List<Visit2>? = mutex.withLock {
+        if (users[userId] == null) {
+            return@withLock null
+        }
         visits.values.map {
             if (it.user == userId && (fromDate == null || it.visitedAt > fromDate) && (toDate == null || it.visitedAt < toDate)) {
                 val loc = if (country != null || toDistance != null) {
@@ -99,10 +103,13 @@ class StubDao : EntityDao() {
             } else {
                 null
             }
-        }.filterNotNull()
+        }.filterNotNull().sortedBy { it.vistedAt }
     }
 
-    suspend override fun avg(locationId: Int, fromDate: Long?, toDate: Long?, fromBirth: Long?, toBirth: Long?, gender: Char?): BigDecimal = mutex.withLock {
+    suspend override fun avg(locationId: Int, fromDate: Long?, toDate: Long?, fromBirth: Long?, toBirth: Long?, gender: Char?): BigDecimal? = mutex.withLock {
+        if (locations[locationId] == null) {
+            return@withLock null
+        }
         val marks = visits.values.map {
             if (it.location == locationId && (fromDate == null || it.visitedAt > fromDate) && (toDate == null || it.visitedAt < toDate)) {
                 val us = if (fromBirth != null || toBirth != null || gender != null) {
@@ -125,7 +132,7 @@ class StubDao : EntityDao() {
         if (marks.isEmpty()) {
             BigDecimal.ZERO
         } else {
-            BigDecimal(marks.average())
+            BigDecimal(marks.average()).setScale(5, RoundingMode.HALF_UP)
         }
     }
 }

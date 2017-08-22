@@ -28,7 +28,7 @@ abstract class EntityDao {
 
     abstract suspend fun findVisit(id: Int): Visit?
 
-    abstract suspend fun findVisits(userId: Int, country: String?, fromDate: Long?, toDate: Long?, toDistance: Int?): List<Visit2>
+    abstract suspend fun findVisits(userId: Int, country: String?, fromDate: Long?, toDate: Long?, toDistance: Int?): List<Visit2>?
 
-    abstract suspend fun avg(locationId: Int, fromDate: Long?, toDate: Long?, fromBirth: Long?, toBirth: Long?, gender: Char?): BigDecimal
+    abstract suspend fun avg(locationId: Int, fromDate: Long?, toDate: Long?, fromBirth: Long?, toBirth: Long?, gender: Char?): BigDecimal?
 }
