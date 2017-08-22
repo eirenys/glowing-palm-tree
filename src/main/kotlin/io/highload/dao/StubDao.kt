@@ -3,8 +3,10 @@ package io.highload.dao
 import io.highload.scheme.Location
 import io.highload.scheme.User
 import io.highload.scheme.Visit
+import io.highload.scheme.Visit2
 import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
+import java.math.BigDecimal
 import java.util.*
 
 /**
@@ -79,4 +81,51 @@ class StubDao : EntityDao() {
         return visits[id]
     }
 
+    override suspend fun findVisits(userId: Int, country: String?, fromDate: Long?, toDate: Long?, toDistance: Int?)
+            : List<Visit2> = mutex.withLock {
+        visits.values.map {
+            if (it.user == userId && (fromDate == null || it.visitedAt > fromDate) && (toDate == null || it.visitedAt < toDate)) {
+                val loc = if (country != null || toDistance != null) {
+                    locations[it.location]
+                } else {
+                    null
+                }
+                if ((country == null || loc?.country == country) &&
+                        (toDistance == null || (loc?.distance ?: Int.MAX_VALUE) < toDistance)) {
+                    Visit2(it, loc ?: locations[it.location]!!)
+                } else {
+                    null
+                }
+            } else {
+                null
+            }
+        }.filterNotNull()
+    }
+
+    suspend override fun avg(locationId: Int, fromDate: Long?, toDate: Long?, fromBirth: Long?, toBirth: Long?, gender: Char?): BigDecimal = mutex.withLock {
+        val marks = visits.values.map {
+            if (it.location == locationId && (fromDate == null || it.visitedAt > fromDate) && (toDate == null || it.visitedAt < toDate)) {
+                val us = if (fromBirth != null || toBirth != null || gender != null) {
+                    users[it.user]
+                } else {
+                    null
+                }
+                if ((fromBirth == null || (us?.birthDate ?: Long.MIN_VALUE) > fromBirth) &&
+                        (toBirth == null || (us?.birthDate ?: Long.MAX_VALUE) < toBirth) &&
+                        (gender == null || us?.gender == gender)) {
+                    it.mark
+                } else {
+                    null
+                }
+            } else {
+                null
+            }
+        }.filterNotNull()
+
+        if (marks.isEmpty()) {
+            BigDecimal.ZERO
+        } else {
+            BigDecimal(marks.average())
+        }
+    }
 }
