@@ -16,51 +16,54 @@ class StubDao : EntityDao() {
     val locations = TreeMap<Int, Location>()
     val visits = TreeMap<Int, Visit>()
 
-    override suspend fun insert(user: User): Boolean = mutex.withLock {
-        val contain = user.id in users
-        if (!contain) {
-            users.put(user.id, user)
+    override suspend fun insert(user: User): Unit = mutex.withLock {
+        if (user.id in users) {
+            error("already inserted")
         }
-        contain
+        user.checkEntity()
+        users.put(user.id, user)
     }
 
-    override suspend fun insert(location: Location): Boolean = mutex.withLock {
-        val contain = location.id in locations
-        if (!contain) {
-            locations.put(location.id, location)
+    override suspend fun insert(location: Location): Unit = mutex.withLock {
+        if (location.id in locations) {
+            error("already inserted")
         }
-        contain
+        location.checkEntity()
+        locations.put(location.id, location)
     }
 
-    override suspend fun insert(visit: Visit): Boolean = mutex.withLock {
-        val contain = visit.id in visits
-        if (!contain) {
-            visits.put(visit.id, visit)
+    override suspend fun insert(visit: Visit): Unit = mutex.withLock {
+        if (visit.id in visits) {
+            error("already inserted")
         }
-        contain
+        visit.checkEntity()
+        visits.put(visit.id, visit)
     }
 
     override suspend fun updateUser(id: Int, block: () -> User): User? = mutex.withLock {
         users[id]?.let {
+            users.remove(it.id)
             val entity = block()
-            entity.id = id
-            users.put(id, entity)
+            it.modify(entity)
+            users.put(it.id, it)
         }
     }
 
     suspend override fun updateLocation(id: Int, block: () -> Location): Location? = mutex.withLock {
         locations[id]?.let {
+            locations.remove(it.id)
             val entity = block()
-            entity.id = id
-            locations.put(id, entity)
+            it.modify(entity)
+            locations.put(it.id, it)
         }
     }
 
     suspend override fun updateVisit(id: Int, block: () -> Visit): Visit? = mutex.withLock {
         visits[id]?.let {
+            visits.remove(it.id)
             val entity = block()
-            entity.id = id
-            visits.put(id, entity)
+            it.modify(entity)
+            visits.put(it.id, it)
         }
     }
 

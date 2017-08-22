@@ -8,11 +8,11 @@ import io.highload.scheme.Visit
  *
  */
 abstract class EntityDao {
-    abstract suspend fun insert(user: User): Boolean
+    abstract suspend fun insert(user: User)
 
-    abstract suspend fun insert(location: Location): Boolean
+    abstract suspend fun insert(location: Location)
 
-    abstract suspend fun insert(visit: Visit): Boolean
+    abstract suspend fun insert(visit: Visit)
 
     abstract suspend fun updateUser(id: Int, block: () -> User): User?
 
