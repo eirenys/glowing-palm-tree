@@ -34,7 +34,7 @@ class StubDaoTest {
         visits = (0..9).map { i ->
             val vis = Visit()
             vis[0] = 30 + i
-            vis[1] = 20 + (i /5)
+            vis[1] = 20 + (i / 5)
             vis[2] = 10
             vis[3] = 9 - (i / 2)
             vis[4] = 3

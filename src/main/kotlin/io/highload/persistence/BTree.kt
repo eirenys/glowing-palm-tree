@@ -17,11 +17,11 @@ class BTree<K, V>(val comparator: Comparator<K>, val nodeSize: Int = 64) : Itera
                 node.insert(index.position, key, value)
             } else {
                 if (index.position == 0) {
-                    val new =  BTreeNode<K, V>(comparator, nodeSize)
+                    val new = BTreeNode<K, V>(comparator, nodeSize)
                     new.insert(0, key, value)
                     putNode(nodeIndex, new)
                 } else if (index.position == nodeSize) {
-                    val new =  BTreeNode<K, V>(comparator, nodeSize)
+                    val new = BTreeNode<K, V>(comparator, nodeSize)
                     new.insert(0, key, value)
                     putNode(nodeIndex + 1, new)
                 } else {
