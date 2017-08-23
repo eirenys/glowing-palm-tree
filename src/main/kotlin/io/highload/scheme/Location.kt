@@ -9,4 +9,6 @@ class Location : Entity(5) {
     val country: String get() = values[2] as String
     val city: String get() = values[3] as String
     val distance: Int get() = values[4] as Int
+
+    override fun toString() = "{\"id\":$id,\"place\":\"$place\",\"country\":\"$country\",\"city\":\"$city\",\"distance\":$distance}"
 }

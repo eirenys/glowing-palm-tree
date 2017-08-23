@@ -10,4 +10,7 @@ class User : Entity(6) {
     val lastName: String get() = values[3] as String
     val gender: Char get() = values[4] as Char
     val birthDate: Int get() = values[5] as Int
+
+    override fun toString(): String = "{\"id\":$id,\"email\":\"$email\",\"first_name\":\"$firstName\"," +
+            "\"last_name\":\"$lastName\",\"gender\":\"$gender\",\"birth_date\":$birthDate}"
 }
