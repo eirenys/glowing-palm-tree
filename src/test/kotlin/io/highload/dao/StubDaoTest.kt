@@ -7,6 +7,7 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
+import kotlin.test.assertNotNull
 
 /**
  *
@@ -68,19 +69,33 @@ class StubDaoTest {
     }
 
     @Test
-    fun findVistsTest1() = runBlocking {
-        val result = dao.findOrderedVisitsByUserId(10, null, null)?.toList().orEmpty()
+    fun findVistsTest11() = runBlocking {
+        val result = dao.findOrderedVisitsByUserId(10, null, null).orEmpty()
         assertEquals(10, result.size)
     }
 
     @Test
-    fun findVistsTest2() = runBlocking {
-        val result = dao.findOrderedVisitsByUserId(10, 7, 9)?.toList().orEmpty()
+    fun findVistsTest12() = runBlocking {
+        val result = dao.findOrderedVisitsByUserId(10, 7, 9).orEmpty()
         assertEquals(listOf(32, 33), result.map { it.id })
     }
 
     @Test
-    fun findVistsTest3() = runBlocking {
+    fun findVistsTest13() = runBlocking {
+        val result = dao.findOrderedVisitsByUserId(10, 8, 8)
+        assertNotNull(result)
+        assertEquals(0, result?.size)
+    }
+
+    @Test
+    fun findVistsTest14() = runBlocking {
+        val result = dao.findOrderedVisitsByUserId(10, 9, 8)
+        assertNotNull(result)
+        assertEquals(0, result?.size)
+    }
+
+    @Test
+    fun findVistsTest21() = runBlocking {
         val result = dao.findVisitsByLocationId(20)?.toList().orEmpty()
         assertEquals(5, result.size)
     }

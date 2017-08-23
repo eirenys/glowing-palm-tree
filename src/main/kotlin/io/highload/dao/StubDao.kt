@@ -81,7 +81,10 @@ class StubDao : EntityDao() {
 
     suspend override fun findOrderedVisitsByUserId(userId: Int, fromDate: Int?, toDate: Int?): Collection<Visit>? = mutex.withLock {
         if (userId !in users) {
-            return null
+            return@withLock null
+        }
+        if (fromDate != null && toDate != null && fromDate >= toDate) {
+            return@withLock emptyList<Visit>()
         }
         return visitsByUsers.subMap(
                 UserVisitKey(userId, fromDate ?: Int.MIN_VALUE, Int.MAX_VALUE), false,
@@ -91,7 +94,7 @@ class StubDao : EntityDao() {
 
     suspend override fun findVisitsByLocationId(locationId: Int): Collection<Visit>? = mutex.withLock {
         if (locationId !in locations) {
-            return null
+            return@withLock null
         }
         return visitsByLocation.subMap(
                 LocationVisitKey(locationId, Int.MIN_VALUE), false,
