@@ -25,7 +25,7 @@ class VertxServer(val handler: MainHandler, val context: CoroutineContext) {
                             handler.post(request.path(), body.bytes)
                         }
                         else -> request.response().response {
-                            error("invalid request")
+                            null // 404
                         }
                     }
                 }

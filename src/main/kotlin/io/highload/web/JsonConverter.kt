@@ -1,8 +1,9 @@
 package io.highload.web
 
-import io.highload.scheme.*
+import io.highload.scheme.Location
+import io.highload.scheme.User
+import io.highload.scheme.Visit
 import java.io.InputStream
-import java.io.OutputStream
 
 /**
  *
@@ -16,10 +17,4 @@ abstract class JsonConverter {
 
     abstract fun parseVisits(inp: InputStream): Sequence<Visit>
     abstract fun parseVisit(inp: InputStream): Visit
-
-    abstract fun formatUser(out: OutputStream, obj: User)
-    abstract fun formatLocation(out: OutputStream, obj: Location)
-    abstract fun formatVisit(out: OutputStream, obj: Visit)
-    abstract fun formatVisits(out: OutputStream, obj: Visits2)
-    abstract fun formatAvg(out: OutputStream, obj: Avg)
 }

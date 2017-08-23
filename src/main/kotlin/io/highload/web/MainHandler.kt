@@ -3,9 +3,7 @@ package io.highload.web
 import io.highload.dao.EntityDao
 import io.highload.scheme.Visit
 import io.highload.scheme.Visit2
-import io.highload.scheme.Visits2
 import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -16,25 +14,23 @@ class MainHandler(val dao: EntityDao, val converter: JsonConverter) {
     suspend fun get(path: CharSequence, query: CharSequence?): String? {
         if (path.startsWith("/users/")) {
             if (path.endsWith("/visits")) {
-                val id = path.substring("/users/".length, path.length - "/visits".length).toInt()
+                val id = path.substring("/users/".length, path.length - "/visits".length).toIntOrNull()
+                        ?: return null
                 val params = QueryParams.parse(query)
                 val result = dao.findOrderedVisitsByUserId(id, params.fromDate, params.toDate)
                         ?: return null
-                val visits2 = convertVisits(result, params)
-                val out = ByteArrayOutputStream()
-                converter.formatVisits(out, Visits2(visits2))
-                return out.toString()
+                return convertVisits(result, params).joinToString(prefix = "{\"visits\":[", postfix = "]}") {
+                    it.toString()
+                }
             } else {
-                val id = path.substring("/users/".length).toInt()
-                val result = dao.findUser(id)
+                val id = path.substring("/users/".length).toIntOrNull()
                         ?: return null
-                val out = ByteArrayOutputStream()
-                converter.formatUser(out, result)
-                return out.toString()
+                return dao.findUser(id)?.toString() ?: return null
             }
         } else if (path.startsWith("/locations/")) {
             if (path.endsWith("/avg")) {
-                val id = path.substring("/locations/".length, path.length - "/avg".length).toInt()
+                val id = path.substring("/locations/".length, path.length - "/avg".length).toIntOrNull()
+                        ?: return null
                 val params = QueryParams.parse(query)
                 val vists = dao.findVisitsByLocationId(id)
                         ?: return null
@@ -42,25 +38,23 @@ class MainHandler(val dao: EntityDao, val converter: JsonConverter) {
                 return "{\"avg\":$result}"
             } else {
                 val id = path.substring("/locations/".length).toIntOrNull()
-                        ?: error("invalid id")
-                val result = dao.findLocation(id)
                         ?: return null
-                val out = ByteArrayOutputStream()
-                converter.formatLocation(out, result)
-                return out.toString()
+                return dao.findLocation(id)?.toString() ?: return null
             }
         } else if (path.startsWith("/visits/")) {
-            val id = path.substring("/visits/".length).toInt()
+            val id = path.substring("/visits/".length).toIntOrNull()
+                    ?: return null
             val result = dao.findVisit(id)
                     ?: return null
-            val out = ByteArrayOutputStream()
-            converter.formatVisit(out, result)
-            return out.toString()
+            return result.toString()
         }
         return null
     }
 
     suspend fun post(path: CharSequence, body: ByteArray): String? {
+        if (body.isEmpty()) {
+            error("empty body")
+        }
         when {
             path.startsWith("/users/new") -> {
                 val user = converter.parseUser(ByteArrayInputStream(body))
@@ -106,7 +100,7 @@ class MainHandler(val dao: EntityDao, val converter: JsonConverter) {
         return visits.mapNotNull {
             if ((params.fromDate == null || it.visitedAt > params.fromDate)
                     && (params.toDate == null || it.visitedAt < params.toDate)) {
-                val location = dao.findLocation(0)!!
+                val location = dao.findLocation(it.location) ?: error("location not found")
                 if ((params.country == null || location.country == params.country) &&
                         (params.toDistance == null || location.distance < params.toDistance)) {
                     return@mapNotNull Visit2(it, location)

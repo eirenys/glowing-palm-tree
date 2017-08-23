@@ -13,6 +13,28 @@ class JacksonConverterTest {
     val converter = JacksonConverter(ObjectMapper())
 
     @Test
+    fun parseUserTest() {
+        val json = "{\"id\":0, \"email\":\"email\", \"first_name\":\"firstName\", " +
+                "\"last_name\":\"lastName\", \"gender\":\"m\", \"birth_date\": 0}"
+        val res = converter.parseUser(json.byteInputStream())
+        res.checkEntity()
+    }
+
+    @Test
+    fun parseLocationTest() {
+        val json = "{\"id\":0, \"place\":\"place\", \"country\":\"country\",\"city\":\"city\", \"distance\":0}"
+        val res = converter.parseLocation(json.byteInputStream())
+        res.checkEntity()
+    }
+
+    @Test
+    fun parseVisitTest() {
+        val json = "{\"id\":0, \"location\":0, \"user\":0, \"visited_at\":0, \"mark\": 0}"
+        val res = converter.parseVisit(json.byteInputStream())
+        res.checkEntity()
+    }
+
+    @Test
     fun parseInvalidJsonTest() {
         assertFails {
             val json = "{\"users\":[}"
@@ -74,7 +96,7 @@ class JacksonConverterTest {
     }
 
     @Test
-    fun parseUserTest() {
+    fun parseUsersTest() {
         val json = "{\"users\":[{\"id\":0, \"email\":\"email\", \"first_name\":\"firstName\", " +
                 "\"last_name\":\"lastName\", \"gender\":\"m\", \"birth_date\": 0}]}"
         converter.parseUsers(json.byteInputStream()).forEach {
@@ -83,7 +105,7 @@ class JacksonConverterTest {
     }
 
     @Test
-    fun parseLocationTest() {
+    fun parseLocationsTest() {
         val json = "{\"locations\":[{\"id\":0, \"place\":\"place\", \"country\":\"country\", " +
                 "\"city\":\"city\", \"distance\":0}]}"
         converter.parseLocations(json.byteInputStream()).forEach {
@@ -92,7 +114,7 @@ class JacksonConverterTest {
     }
 
     @Test
-    fun parseVisitTest() {
+    fun parseVisitsTest() {
         val json = "{\"visits\":[{\"id\":0, \"location\":0, \"user\":0, \"visited_at\":0, \"mark\": 0}]}"
         converter.parseVisits(json.byteInputStream()).forEach {
             it.checkEntity()
