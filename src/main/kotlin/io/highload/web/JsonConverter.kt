@@ -8,14 +8,14 @@ import java.io.OutputStream
  *
  */
 abstract class JsonConverter {
-    abstract fun parseUsers(out: InputStream): Users
-    abstract fun parseUser(out: InputStream): User
+    abstract fun parseUsers(inp: InputStream): Sequence<User>
+    abstract fun parseUser(inp: InputStream): User
 
-    abstract fun parseLocations(out: InputStream): Locations
-    abstract fun parseLocation(out: InputStream): Location
+    abstract fun parseLocations(inp: InputStream): Sequence<Location>
+    abstract fun parseLocation(inp: InputStream): Location
 
-    abstract fun parseVisits(out: InputStream): Visits
-    abstract fun parseVisit(out: InputStream): Visit
+    abstract fun parseVisits(inp: InputStream): Sequence<Visit>
+    abstract fun parseVisit(inp: InputStream): Visit
 
     abstract fun formatUser(out: OutputStream, obj: User)
     abstract fun formatLocation(out: OutputStream, obj: Location)

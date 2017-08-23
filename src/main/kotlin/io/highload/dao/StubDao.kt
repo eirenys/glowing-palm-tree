@@ -117,8 +117,8 @@ class StubDao : EntityDao() {
                 } else {
                     null
                 }
-                if ((fromBirth == null || (us?.birthDate ?: Long.MIN_VALUE) > fromBirth) &&
-                        (toBirth == null || (us?.birthDate ?: Long.MAX_VALUE) < toBirth) &&
+                if ((fromBirth == null || (us?.birthDate ?: Int.MIN_VALUE) > fromBirth) &&
+                        (toBirth == null || (us?.birthDate ?: Int.MAX_VALUE) < toBirth) &&
                         (gender == null || us?.gender == gender)) {
                     it.mark
                 } else {
