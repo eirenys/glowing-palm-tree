@@ -34,7 +34,11 @@ class QueryParams(
                         "toDistance" -> toDistance = pair[1].toInt()
                         "fromAge" -> toBirth = (DateTime.now().minusYears(pair[1].toInt()).millis / 1000).toInt()
                         "toAge" -> fromBirth = (DateTime.now().minusYears(pair[1].toInt()).millis / 1000).toInt()
-                        "gender" -> gender = pair[1].first()
+                        "gender" -> gender = when (pair[1]) {
+                            "m" -> 'm'
+                            "f" -> 'f'
+                            else -> error("invalid gender field")
+                        }
                     }
                 }
             }
