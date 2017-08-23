@@ -9,13 +9,13 @@ import java.net.URLDecoder
 class QueryParams(
         val country: String?,
         val fromDate: Int?,
-        var toDate: Int?,
+        val toDate: Int?,
         val toDistance: Int?,
-        var fromBirth: Int?,
-        var toBirth: Int?,
+        val fromBirth: Int?,
+        val toBirth: Int?,
         val gender: Char?) {
     companion object {
-        fun parse(query: CharSequence): QueryParams {
+        fun parse(query: CharSequence?): QueryParams {
             var country: String? = null
             var fromDate: Int? = null
             var toDate: Int? = null
@@ -24,16 +24,18 @@ class QueryParams(
             var toBirth: Int? = null
             var gender: Char? = null
 
-            query.split("&").forEach{
-                val pair = it.split("=")
-                when(pair[0]) {
-                    "country" -> country = URLDecoder.decode(pair[1], "UTF-8")
-                    "fromDate" -> fromDate = pair[1].toInt()
-                    "toDate" -> toDate = pair[1].toInt()
-                    "toDistance" -> toDistance = pair[1].toInt()
-                    "fromAge" -> toBirth = (DateTime.now().minusYears(pair[1].toInt()).millis / 1000).toInt()
-                    "toAge" -> fromBirth = (DateTime.now().minusYears(pair[1].toInt()).millis / 1000).toInt()
-                    "gender" -> gender = pair[1].first()
+            if (query != null) {
+                query.split("&").forEach {
+                    val pair = it.split("=")
+                    when (pair[0]) {
+                        "country" -> country = URLDecoder.decode(pair[1], "UTF-8")
+                        "fromDate" -> fromDate = pair[1].toInt()
+                        "toDate" -> toDate = pair[1].toInt()
+                        "toDistance" -> toDistance = pair[1].toInt()
+                        "fromAge" -> toBirth = (DateTime.now().minusYears(pair[1].toInt()).millis / 1000).toInt()
+                        "toAge" -> fromBirth = (DateTime.now().minusYears(pair[1].toInt()).millis / 1000).toInt()
+                        "gender" -> gender = pair[1].first()
+                    }
                 }
             }
 

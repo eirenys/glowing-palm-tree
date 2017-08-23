@@ -3,11 +3,8 @@ package io.highload.dao
 import io.highload.scheme.Location
 import io.highload.scheme.User
 import io.highload.scheme.Visit
-import io.highload.scheme.Visit2
 import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
-import java.math.BigDecimal
-import java.math.RoundingMode
 import java.util.*
 
 /**
@@ -82,77 +79,23 @@ class StubDao : EntityDao() {
         return visits[id]
     }
 
-    override suspend fun findVisits(userId: Int, country: String?, fromDate: Long?, toDate: Long?, toDistance: Int?)
-            : List<Visit2>? = mutex.withLock {
-        if (users[userId] == null) {
-            return@withLock null
-        }
-        visits.values.map {
-            if (it.user == userId && (fromDate == null || it.visitedAt > fromDate) && (toDate == null || it.visitedAt < toDate)) {
-                val loc = if (country != null || toDistance != null) {
-                    locations[it.location]
-                } else {
-                    null
-                }
-                if ((country == null || loc?.country == country) &&
-                        (toDistance == null || (loc?.distance ?: Int.MAX_VALUE) < toDistance)) {
-                    Visit2(it, loc ?: locations[it.location]!!)
-                } else {
-                    null
-                }
-            } else {
-                null
-            }
-        }.filterNotNull().sortedBy { it.vistedAt }
-    }
-
-    suspend override fun avg(locationId: Int, fromDate: Long?, toDate: Long?, fromBirth: Long?, toBirth: Long?, gender: Char?): BigDecimal? = mutex.withLock {
-        if (locations[locationId] == null) {
-            return@withLock null
-        }
-        val marks = visits.values.map {
-            if (it.location == locationId && (fromDate == null || it.visitedAt > fromDate) && (toDate == null || it.visitedAt < toDate)) {
-                val us = if (fromBirth != null || toBirth != null || gender != null) {
-                    users[it.user]
-                } else {
-                    null
-                }
-                if ((fromBirth == null || (us?.birthDate ?: Int.MIN_VALUE) > fromBirth) &&
-                        (toBirth == null || (us?.birthDate ?: Int.MAX_VALUE) < toBirth) &&
-                        (gender == null || us?.gender == gender)) {
-                    it.mark
-                } else {
-                    null
-                }
-            } else {
-                null
-            }
-        }.filterNotNull()
-
-        if (marks.isEmpty()) {
-            BigDecimal.ZERO
-        } else {
-            BigDecimal(marks.average()).setScale(5, RoundingMode.HALF_UP)
-        }
-    }
-
-    suspend override fun findOrderedVisitsByUserId(userId: Int, fromDate: Int?, toDate: Int?): Sequence<Visit>? {
+    suspend override fun findOrderedVisitsByUserId(userId: Int, fromDate: Int?, toDate: Int?): Collection<Visit>? = mutex.withLock {
         if (userId !in users) {
             return null
         }
         return visitsByUsers.subMap(
                 UserVisitKey(userId, fromDate ?: Int.MIN_VALUE, Int.MAX_VALUE), false,
                 UserVisitKey(userId, toDate ?: Int.MAX_VALUE, Int.MIN_VALUE), false
-        ).values.asSequence()
+        ).values
     }
 
-    suspend override fun findVisitsByLocationId(locationId: Int): Sequence<Visit>? {
+    suspend override fun findVisitsByLocationId(locationId: Int): Collection<Visit>? = mutex.withLock {
         if (locationId !in locations) {
             return null
         }
         return visitsByLocation.subMap(
                 LocationVisitKey(locationId, Int.MIN_VALUE), false,
                 LocationVisitKey(locationId, Int.MAX_VALUE), false
-        ).values.asSequence()
+        ).values
     }
 }
