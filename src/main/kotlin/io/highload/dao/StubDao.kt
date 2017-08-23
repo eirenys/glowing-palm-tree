@@ -18,6 +18,8 @@ class StubDao : EntityDao() {
     val users = TreeMap<Int, User>()
     val locations = TreeMap<Int, Location>()
     val visits = TreeMap<Int, Visit>()
+    val visitsByUsers = TreeMap<UserVisitKey, Visit>()
+    val visitsByLocation = TreeMap<LocationVisitKey, Visit>()
 
     override suspend fun insert(user: User): Unit = mutex.withLock {
         if (user.id in users) {
@@ -41,32 +43,30 @@ class StubDao : EntityDao() {
         }
         visit.checkEntity()
         visits.put(visit.id, visit)
+        visitsByUsers.put(UserVisitKey(visit.user, visit.visitedAt, visit.id), visit)
+        visitsByLocation.put(LocationVisitKey(visit.location, visit.id), visit)
     }
 
     override suspend fun updateUser(id: Int, block: () -> User): User? = mutex.withLock {
         users[id]?.also {
-            users.remove(it.id)
-            val entity = block()
-            it.modify(entity)
-            users.put(it.id, it)
+            it.modify(block())
         }
     }
 
     suspend override fun updateLocation(id: Int, block: () -> Location): Location? = mutex.withLock {
         locations[id]?.also {
-            locations.remove(it.id)
-            val entity = block()
-            it.modify(entity)
-            locations.put(it.id, it)
+            it.modify(block())
         }
     }
 
     suspend override fun updateVisit(id: Int, block: () -> Visit): Visit? = mutex.withLock {
         visits[id]?.also {
-            visits.remove(it.id)
-            val entity = block()
-            it.modify(entity)
-            visits.put(it.id, it)
+            visitsByUsers.remove(UserVisitKey(it.user, it.visitedAt, it.id))
+            visitsByLocation.remove(LocationVisitKey(it.location, it.id))
+
+            it.modify(block())
+            visitsByUsers.put(UserVisitKey(it.user, it.visitedAt, it.id), it)
+            visitsByLocation.put(LocationVisitKey(it.location, it.id), it)
         }
     }
 
@@ -134,5 +134,25 @@ class StubDao : EntityDao() {
         } else {
             BigDecimal(marks.average()).setScale(5, RoundingMode.HALF_UP)
         }
+    }
+
+    suspend override fun findOrderedVisitsByUserId(userId: Int, fromDate: Int?, toDate: Int?): Sequence<Visit>? {
+        if (userId !in users) {
+            return null
+        }
+        return visitsByUsers.subMap(
+                UserVisitKey(userId, fromDate ?: Int.MIN_VALUE, Int.MAX_VALUE), false,
+                UserVisitKey(userId, toDate ?: Int.MAX_VALUE, Int.MIN_VALUE), false
+        ).values.asSequence()
+    }
+
+    suspend override fun findVisitsByLocationId(locationId: Int): Sequence<Visit>? {
+        if (locationId !in locations) {
+            return null
+        }
+        return visitsByLocation.subMap(
+                LocationVisitKey(locationId, Int.MIN_VALUE), false,
+                LocationVisitKey(locationId, Int.MAX_VALUE), false
+        ).values.asSequence()
     }
 }

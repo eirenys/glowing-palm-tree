@@ -18,7 +18,10 @@ abstract class Entity(size: Int) {
 
     fun modify(entity: Entity) {
         for (index in 0..values.size - 1) {
-            values[index] = entity.values[index]
+            val newValue = entity.values[index]
+            if (newValue != null) {
+                values[index] = newValue
+            }
         }
     }
 }
