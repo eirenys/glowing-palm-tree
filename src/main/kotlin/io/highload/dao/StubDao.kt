@@ -46,27 +46,32 @@ class StubDao : EntityDao() {
 
     override suspend fun updateUser(id: Int, block: () -> User): User? = mutex.withLock {
         users[id]?.also {
-            users.remove(id)
             it.modify(block())
+
+            users.remove(id)
             users.put(it.id, it)
         }
     }
 
     suspend override fun updateLocation(id: Int, block: () -> Location): Location? = mutex.withLock {
         locations[id]?.also {
-            locations.remove(id)
             it.modify(block())
+
+            locations.remove(id)
             locations.put(it.id, it)
         }
     }
 
     suspend override fun updateVisit(id: Int, block: () -> Visit): Visit? = mutex.withLock {
         visits[id]?.also {
-            visits.remove(id)
-            visitsByUsers.remove(UserVisitKey(it.user, it.visitedAt, it.id))
-            visitsByLocation.remove(LocationVisitKey(it.location, it.id))
+            val oldKey1 = UserVisitKey(it.user, it.visitedAt, it.id)
+            val oldKey2 = LocationVisitKey(it.location, it.id)
 
             it.modify(block())
+
+            visits.remove(id)
+            visitsByUsers.remove(oldKey1)
+            visitsByLocation.remove(oldKey2)
             visits.put(it.id, it)
             visitsByUsers.put(UserVisitKey(it.user, it.visitedAt, it.id), it)
             visitsByLocation.put(LocationVisitKey(it.location, it.id), it)

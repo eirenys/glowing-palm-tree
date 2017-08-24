@@ -69,6 +69,29 @@ class StubDaoTest {
     }
 
     @Test
+    fun updateSingleEntityTest() = runBlocking {
+        dao.updateUser(10) {
+            val user2 = User()
+            user2[0] = 10
+            user2[5] = 12
+            user2
+        }
+
+        assertEquals(1, dao.users.size)
+    }
+
+    @Test
+    fun onUpdateFailTest() = runBlocking {
+        try {
+            dao.updateUser(10) {
+                error("parse error")
+            }
+        } catch (e: Throwable) {
+        }
+        assertEquals(1, dao.users.size)
+    }
+
+    @Test
     fun findVistsTest11() = runBlocking {
         val result = dao.findOrderedVisitsByUserId(10, null, null).orEmpty()
         assertEquals(10, result.size)

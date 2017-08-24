@@ -15,6 +15,20 @@ class UserVisitKey(val user: Int, val visitedAt: Int, val id: Int) : Comparable<
         }
         return cmp1
     }
+
+    override fun hashCode(): Int = user xor visitedAt xor id
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) {
+            return true
+        }
+
+        if (other == null || this.javaClass != other.javaClass) {
+            return false
+        }
+        val o = other as UserVisitKey
+        return user == o.user && visitedAt == o.visitedAt && id == o.id
+    }
 }
 
 class LocationVisitKey(val location: Int, val id: Int) : Comparable<LocationVisitKey> {
@@ -24,5 +38,19 @@ class LocationVisitKey(val location: Int, val id: Int) : Comparable<LocationVisi
             return id.compareTo(other.id)
         }
         return cmp1
+    }
+
+    override fun hashCode(): Int = location xor id
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) {
+            return true
+        }
+
+        if (other == null || this.javaClass != other.javaClass) {
+            return false
+        }
+        val o = other as LocationVisitKey
+        return location == o.location && id == o.id
     }
 }
