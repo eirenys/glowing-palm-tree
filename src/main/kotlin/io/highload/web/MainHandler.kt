@@ -5,6 +5,7 @@ import io.highload.scheme.Visit
 import io.highload.scheme.Visit2
 import java.io.ByteArrayInputStream
 import java.math.BigDecimal
+import java.math.MathContext
 import java.math.RoundingMode
 
 /**
@@ -132,7 +133,7 @@ class MainHandler(val dao: EntityDao, val converter: JsonConverter) {
         return if (list.isEmpty()) {
             BigDecimal.ZERO
         } else {
-            BigDecimal(list.average()).setScale(5, RoundingMode.HALF_UP)
+            BigDecimal(list.sum()).divide(BigDecimal(list.size), MathContext(20)).setScale(5, RoundingMode.HALF_UP)
         }
     }
 }
