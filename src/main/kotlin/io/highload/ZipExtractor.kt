@@ -24,12 +24,16 @@ class ZipExtractor(val dao: EntityDao, val converter: JsonConverter) {
                             }
                         }
                     } else if (name.contains("locations")) {
-                        converter.parseLocations(zip.getInputStream(e)).forEach {
-                            dao.insert(it)
+                        zip.getInputStream(e).use {
+                            converter.parseLocations(it).forEach {
+                                dao.insert(it)
+                            }
                         }
                     } else if (name.contains("visits")) {
-                        converter.parseVisits(zip.getInputStream(e)).forEach {
-                            dao.insert(it)
+                        zip.getInputStream(e).use {
+                            converter.parseVisits(it).forEach {
+                                dao.insert(it)
+                            }
                         }
                     }
                 }
