@@ -32,12 +32,12 @@ fun main(args: Array<String>) {
 
     // init phase
     try {
-        dao.findUser(-1)
-        handler.get("", null)
+        dao.findUser(1)
+        handler.get("/users/1/visits", null)
     } catch (e: Throwable) {
     }
     try {
-        handler.post("", "{}".toByteArray())
+        handler.post("/users/1", "{}".toByteArray())
     } catch (e: Throwable) {
     }
 
