@@ -61,6 +61,12 @@
             <version>3.4.2</version>
         </dependency>
         <dependency>
+            <groupId>org.rapidoid</groupId>
+            <artifactId>rapidoid-http-fast</artifactId>
+            <version>5.4.3</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-test-junit</artifactId>
             <version>${kotlin.version}</version>

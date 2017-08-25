@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.highload.dao.StubDao
+import io.highload.metrics.MetricsAggregator
 import io.highload.web.JacksonConverter
 import io.highload.web.MainHandler
-import io.highload.web.SocketServer
-import io.highload.web.VertxServer
+import io.highload.web.RapidoidServer
 
 /**
  *
@@ -47,9 +47,8 @@ fun main(args: Array<String>) {
     val time = (System.currentTimeMillis() - startTime) / 1000
     println("data imported ($time sec)")
 
-    if (vvv) {
-        VertxServer(handler).start(port)
-    } else {
-        SocketServer(handler).start(port)
-    }
+    Thread {
+        MetricsAggregator.startProduce()
+    }.start()
+    RapidoidServer(handler).listen(port)
 }
