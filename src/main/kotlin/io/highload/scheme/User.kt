@@ -11,6 +11,17 @@ class User : Entity(6) {
     val gender: Char get() = values[4] as Char
     val birthDate: Int get() = values[5] as Int
 
-    override fun toString(): String = "{\"id\":$id,\"email\":\"$email\",\"first_name\":\"$firstName\"," +
-            "\"last_name\":\"$lastName\",\"gender\":\"$gender\",\"birth_date\":$birthDate}"
+    override fun toByteChain(next: ByteChain?): ByteChain = ByteChain(JSON_END)
+            .link(toByteArr(birthDate))
+            .link(BIRTH_DATE)
+            .link(toByteArr(gender))
+            .link(GENDER)
+            .link(lastName.toByteArray())
+            .link(LAST_NAME)
+            .link(firstName.toByteArray())
+            .link(FIRST_NAME)
+            .link(email.toByteArray())
+            .link(EMAIL)
+            .link(toByteArr(id))
+            .link(JSON_START)
 }

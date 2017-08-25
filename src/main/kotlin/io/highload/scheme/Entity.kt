@@ -6,6 +6,8 @@ package io.highload.scheme
 abstract class Entity(size: Int) {
     protected val values = arrayOfNulls<Any?>(size)
 
+    abstract fun toByteChain(next: ByteChain?): ByteChain
+
     fun tryGet(index: Int): Any? = values[index]
 
     operator fun set(index: Int, value: Any?) {
@@ -23,5 +25,17 @@ abstract class Entity(size: Int) {
                 values[index] = newValue
             }
         }
+    }
+
+    fun toByteArray(): ByteArray = toByteChain(null).toByteArray()
+
+    override fun toString(): String = toByteChain(null).toString()
+
+    protected fun toByteArr(int: Int) = Integer.toString(int).toByteArray()
+
+    protected fun toByteArr(ch: Char) = when(ch) {
+        'm' -> MALE
+        'f' -> FEMALE
+        else -> FEMALE
     }
 }
