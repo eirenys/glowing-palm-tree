@@ -12,19 +12,25 @@ class ByteChainTest {
 
     @Test
     fun chainTest() {
-        val res = ByteChain(test1)
+        val res = ByteChain(test1, null)
         assertEquals("test1", res.toString())
     }
 
     @Test
     fun chainLinkTest() {
-        val res = ByteChain(test1).link(test2)
+        val res = ByteChain(test1, null).link(test2)
         assertEquals("test2test1", res.toString())
     }
 
     @Test
+    fun chainLinkTest2() {
+        val res = ByteChain(test1, ByteChain(test2, null))
+        assertEquals("test1test2", res.toString())
+    }
+
+    @Test
     fun chainSizeTest() {
-        val res = ByteChain(test1).link(test2)
+        val res = ByteChain(test1, null).link(test2)
         assertEquals("test2test1".length, res.size)
     }
 }

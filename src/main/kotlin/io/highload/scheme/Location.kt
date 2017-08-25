@@ -10,7 +10,7 @@ class Location : Entity(5) {
     val city: String get() = values[3] as String
     val distance: Int get() = values[4] as Int
 
-    override fun toByteChain(next: ByteChain?): ByteChain = ByteChain(JSON_END)
+    override fun toByteChain(next: ByteChain?): ByteChain = ByteChain(JSON_END, next)
             .link(toByteArr(distance))
             .link(DISTANCE)
             .link(city.toByteArray())

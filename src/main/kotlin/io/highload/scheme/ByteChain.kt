@@ -3,11 +3,12 @@ package io.highload.scheme
 /**
  *
  */
-class ByteChain(val array: ByteArray, val next: ByteChain? = null, val size: Int = array.size) {
+class ByteChain(val array: ByteArray, val next: ByteChain?) {
+    val size: Int = if (next != null) next.size + array.size else array.size
     override fun toString(): String = String(toByteArray())
 
     fun link(previous: ByteArray): ByteChain {
-        return ByteChain(previous, this, size + previous.size)
+        return ByteChain(previous, this)
     }
 
     fun toByteArray(): ByteArray = if (next == null) {

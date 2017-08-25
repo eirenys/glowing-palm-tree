@@ -10,7 +10,7 @@ class Visit : Entity(5) {
     val visitedAt: Int get() = values[3] as Int
     val mark: Int get() = values[4] as Int
 
-    override fun toByteChain(next: ByteChain?): ByteChain = ByteChain(JSON_END)
+    override fun toByteChain(next: ByteChain?): ByteChain = ByteChain(JSON_END, next)
             .link(toByteArr(mark))
             .link(MARK)
             .link(toByteArr(visitedAt))

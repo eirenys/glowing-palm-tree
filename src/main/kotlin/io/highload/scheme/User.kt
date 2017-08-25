@@ -11,7 +11,7 @@ class User : Entity(6) {
     val gender: Char get() = values[4] as Char
     val birthDate: Int get() = values[5] as Int
 
-    override fun toByteChain(next: ByteChain?): ByteChain = ByteChain(JSON_END)
+    override fun toByteChain(next: ByteChain?): ByteChain = ByteChain(JSON_END, next)
             .link(toByteArr(birthDate))
             .link(BIRTH_DATE)
             .link(toByteArr(gender))
