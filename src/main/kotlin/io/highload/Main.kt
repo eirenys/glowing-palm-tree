@@ -6,7 +6,7 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.highload.dao.StubDao
 import io.highload.web.JacksonConverter
 import io.highload.web.MainHandler
-import io.highload.web.VertxServer
+import io.highload.web.SocketServer
 
 /**
  *
@@ -45,6 +45,6 @@ fun main(args: Array<String>) {
     val time = (System.currentTimeMillis() - startTime) / 1000
     println("data imported ($time sec)")
 
-    VertxServer(handler).start(port)
-//    SocketServer(handler).start(port)
+//    VertxServer(handler).start(port)
+    SocketServer(handler).start(port)
 }
