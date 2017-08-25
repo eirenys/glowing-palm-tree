@@ -30,12 +30,4 @@ abstract class Entity(size: Int) {
     fun toByteArray(): ByteArray = toByteChain(null).toByteArray()
 
     override fun toString(): String = toByteChain(null).toString()
-
-    protected fun toByteArr(int: Int) = Integer.toString(int).toByteArray()
-
-    protected fun toByteArr(ch: Char) = when(ch) {
-        'm' -> MALE
-        'f' -> FEMALE
-        else -> FEMALE
-    }
 }

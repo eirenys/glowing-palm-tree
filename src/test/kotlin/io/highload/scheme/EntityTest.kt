@@ -29,4 +29,11 @@ class EntityTest {
         val res = makeVisit(3, 2, 1, 4, 5).toString()
         Assert.assertEquals(expected, res)
     }
+
+    @Test
+    fun visit2Test() {
+        val expected = "{\"place\":\"place 1\",\"mark\":5,\"visited_at\":4}"
+        val res = Visit2(makeVisit(3, 2, 1, 4, 5), makeLocation(1)).toString()
+        Assert.assertEquals(expected, res)
+    }
 }
