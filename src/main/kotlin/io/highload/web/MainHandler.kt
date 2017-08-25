@@ -12,7 +12,7 @@ import java.math.RoundingMode
  *
  */
 class MainHandler(val dao: StubDao, val converter: JsonConverter) {
-    fun get(path: CharSequence, query: CharSequence?): String? {
+    fun get(path: CharSequence, query: CharSequence?): ByteArray? {
         if (path.startsWith("/users/")) {
             if (path.endsWith("/visits")) {
                 val id = path.substring("/users/".length, path.length - "/visits".length).toIntOrNull()
@@ -20,13 +20,11 @@ class MainHandler(val dao: StubDao, val converter: JsonConverter) {
                 val params = QueryParams.parse(query)
                 val result = dao.findOrderedVisitsByUserId(id, params.fromDate, params.toDate)
                         ?: return null
-                return convertVisits(result, params).joinToString(prefix = "{\"visits\":[", postfix = "]}") {
-                    it.toString()
-                }
+                return toByteArray(convertVisits(result, params))
             } else {
                 val id = path.substring("/users/".length).toIntOrNull()
                         ?: return null
-                return dao.findUser(id)?.toString()
+                return dao.findUser(id)?.toByteArray()
             }
         } else if (path.startsWith("/locations/")) {
             if (path.endsWith("/avg")) {
@@ -36,21 +34,21 @@ class MainHandler(val dao: StubDao, val converter: JsonConverter) {
                 val vists = dao.findVisitsByLocationId(id)
                         ?: return null
                 val result = avg(vists, params)
-                return "{\"avg\":$result}"
+                return "{\"avg\":$result}".toByteArray()
             } else {
                 val id = path.substring("/locations/".length).toIntOrNull()
                         ?: return null
-                return dao.findLocation(id)?.toString()
+                return dao.findLocation(id)?.toByteArray()
             }
         } else if (path.startsWith("/visits/")) {
             val id = path.substring("/visits/".length).toIntOrNull()
                     ?: return null
-            return dao.findVisit(id)?.toString()
+            return dao.findVisit(id)?.toByteArray()
         }
         return null
     }
 
-    fun post(path: CharSequence, body: ByteArray): String? {
+    fun post(path: CharSequence, body: ByteArray): ByteArray? {
         if (body.isEmpty()) {
             error("empty body")
         }
@@ -58,38 +56,38 @@ class MainHandler(val dao: StubDao, val converter: JsonConverter) {
             path.startsWith("/users/new") -> {
                 val user = converter.parseUser(ByteArrayInputStream(body))
                 dao.insert(user)
-                return "{}"
+                return EMPTY_JSON
             }
             path.startsWith("/locations/new") -> {
                 val location = converter.parseLocation(ByteArrayInputStream(body))
                 dao.insert(location)
-                return "{}"
+                return EMPTY_JSON
             }
             path.startsWith("/visits/new") -> {
                 val visit = converter.parseVisit(ByteArrayInputStream(body))
                 dao.insert(visit)
-                return "{}"
+                return EMPTY_JSON
             }
             path.startsWith("/users/") -> {
                 val id = path.substring("/users/".length).toInt()
                 val result = dao.updateUser(id) {
                     converter.parseUser(ByteArrayInputStream(body))
                 }
-                return if (result != null) "{}" else null
+                return if (result != null) EMPTY_JSON else null
             }
             path.startsWith("/locations/") -> {
                 val id = path.substring("/locations/".length).toInt()
                 val result = dao.updateLocation(id) {
                     converter.parseLocation(ByteArrayInputStream(body))
                 }
-                return if (result != null) "{}" else null
+                return if (result != null) EMPTY_JSON else null
             }
             path.startsWith("/visits/") -> {
                 val id = path.substring("/visits/".length).toInt()
                 val result = dao.updateVisit(id) {
                     converter.parseVisit(ByteArrayInputStream(body))
                 }
-                return if (result != null) "{}" else null
+                return if (result != null) EMPTY_JSON else null
             }
             else -> return null
         }
@@ -133,5 +131,12 @@ class MainHandler(val dao: StubDao, val converter: JsonConverter) {
         } else {
             BigDecimal(list.sum()).divide(BigDecimal(list.size), MathContext(20)).setScale(5, RoundingMode.HALF_UP)
         }
+    }
+
+    fun toByteArray(list: List<Visit2>): ByteArray {
+        TODO()
+        list.joinToString(prefix = "{\"visits\":[", postfix = "]}") {
+            it.toString()
+        }.toByteArray()
     }
 }

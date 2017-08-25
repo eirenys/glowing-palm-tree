@@ -3,7 +3,7 @@ package io.highload.scheme
 /**
  *
  */
-class ByteChain(val array: ByteArray, val next: ByteChain?, val size: Int = array.size) {
+class ByteChain(val array: ByteArray, val next: ByteChain? = null, val size: Int = array.size) {
     override fun toString(): String = String(toByteArray())
 
     fun link(previous: ByteArray): ByteChain {

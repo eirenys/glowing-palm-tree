@@ -10,7 +10,8 @@ val CONTENT_TYPE_JSON = "Content-Type: application/json;charset=utf-8\r\n".toByt
 val CONTENT_LENGTH = "Content-Length: ".toByteArray()
 val LINE = "\r\n".toByteArray()
 val LINELINE = "\r\n\r\n".toByteArray()
-val TEST = "{\"name\":\"хуйта\"}".toByteArray()
 
 val POST = "POST".toByteArray()
 val GET = "GET".toByteArray()
+
+val EMPTY_JSON = "{}".toByteArray()

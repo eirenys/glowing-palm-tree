@@ -24,7 +24,7 @@ class RapidoidServer(val handler: MainHandler) : AbstractHttpServer() {
                 req.response(ctx) {
                     m.bq()
                     try {
-                        handler.get(buf.get(req.path), buf.get(req.query))?.toByteArray()
+                        handler.get(buf.get(req.path), buf.get(req.query))
                     } finally {
                         m.aq()
                     }
@@ -33,7 +33,9 @@ class RapidoidServer(val handler: MainHandler) : AbstractHttpServer() {
                 req.response(ctx) {
                     m.bq()
                     try {
-                        handler.post(buf.get(req.path), buf.get(req.body).toByteArray())?.toByteArray()
+                        val arr = ByteArray(req.body.length)
+                        buf.get(req.body, arr, 0)
+                        handler.post(buf.get(req.path), arr)
                     } finally {
                         m.aq()
                     }
@@ -47,46 +49,6 @@ class RapidoidServer(val handler: MainHandler) : AbstractHttpServer() {
             m.end()
             MetricsAggregator.save(m)
         }
-    }
-
-    fun start(port: Int) {
-        listen(port)
-//        val vertx = Vertx.factory.vertx()
-//        val server = vertx.createHttpServer(HttpServerOptions().setAcceptBacklog(2048))
-//
-//        server.requestHandler { request ->
-//            request.bodyHandler { body ->
-//                val m = Metrics()
-//                m.start()
-//                when (request.method()) {
-//                    HttpMethod.GET -> request.response().response {
-//                        m.bq()
-//                        try {
-//                            handler.get(request.path(), request.query())
-//                        } finally {
-//                            m.aq()
-//                        }
-//                    }
-//                    HttpMethod.POST -> request.response().response {
-//                        m.bq()
-//                        try {
-//                            handler.post(request.path(), body.bytes)
-//                        } finally {
-//                            m.aq()
-//                        }
-//                    }
-//                    else -> request.response().response {
-//                        null // 404
-//                    }
-//                }
-//            }
-//        }.listen(port) {
-//            if (it.succeeded()) {
-//                println("listening port: $port")
-//            } else {
-//                it.cause().printStackTrace()
-//            }
-//        }
     }
 
     protected inline fun RapidoidHelper.response(ctx: Channel, block: () -> ByteArray?): HttpStatus {
