@@ -1,6 +1,7 @@
 package io.highload.web
 
 import io.highload.dao.StubDao
+import io.highload.scheme.ByteChain
 import io.highload.scheme.Visit
 import io.highload.scheme.Visit2
 import java.io.ByteArrayInputStream
@@ -134,9 +135,13 @@ class MainHandler(val dao: StubDao, val converter: JsonConverter) {
     }
 
     fun toByteArray(list: List<Visit2>): ByteArray {
-        TODO()
-        list.joinToString(prefix = "{\"visits\":[", postfix = "]}") {
-            it.toString()
-        }.toByteArray()
+        var result = ByteChain(VISITS_END, null)
+        list.asReversed().forEachIndexed { index, visit ->
+            if (index > 0) {
+                result = result.link(DELIMITER)
+            }
+            result = visit.toByteChain(result)
+        }
+        return result.link(VISITS).toByteArray()
     }
 }

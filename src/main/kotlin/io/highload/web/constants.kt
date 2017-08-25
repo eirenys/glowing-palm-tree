@@ -15,3 +15,7 @@ val POST = "POST".toByteArray()
 val GET = "GET".toByteArray()
 
 val EMPTY_JSON = "{}".toByteArray()
+
+val VISITS = "{\"visits\":[".toByteArray()
+val DELIMITER = ",".toByteArray()
+val VISITS_END = "]}".toByteArray()
