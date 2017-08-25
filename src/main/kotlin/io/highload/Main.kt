@@ -7,6 +7,7 @@ import io.highload.dao.StubDao
 import io.highload.web.JacksonConverter
 import io.highload.web.MainHandler
 import io.highload.web.SocketServer
+import io.highload.web.VertxServer
 
 /**
  *
@@ -18,6 +19,7 @@ const val PORT = 80
 
 fun main(args: Array<String>) {
     val local = args.firstOrNull() == "-local"
+    val vvv = args.getOrNull(1) == "-vertx"
     val dataFile = if (local) LOCAL_DATA_FILE else DATA_FILE
     val port = if (local) LOCAL_PORT else PORT
     val mapper = ObjectMapper()
@@ -45,6 +47,9 @@ fun main(args: Array<String>) {
     val time = (System.currentTimeMillis() - startTime) / 1000
     println("data imported ($time sec)")
 
-//    VertxServer(handler).start(port)
-    SocketServer(handler).start(port)
+    if (vvv) {
+        VertxServer(handler).start(port)
+    } else {
+        SocketServer(handler).start(port)
+    }
 }

@@ -4,7 +4,6 @@ import io.highload.metrics.Metrics
 import io.highload.metrics.MetricsAggregator
 import java.net.ServerSocket
 import java.nio.ByteBuffer
-import java.nio.CharBuffer
 
 /**
  *
@@ -13,7 +12,7 @@ class SocketServer(val handler: MainHandler) {
     val BUFFER_SIZE = 2048
 
     fun start(port: Int) {
-        val ss = ServerSocket(port, 4096)
+        val ss = ServerSocket(port, 409600)
 
         (1..16).forEach {
             Thread {
@@ -28,6 +27,7 @@ class SocketServer(val handler: MainHandler) {
         do {
             val m = Metrics()
             val sock = ss.accept()
+            sock.keepAlive = true
             m.start()
             try {
                 val byteArray = ByteArray(BUFFER_SIZE)
@@ -44,7 +44,7 @@ class SocketServer(val handler: MainHandler) {
                 }
                 fullBuffer.limit(limit)
 
-                val seq = BufSeq(Charsets.UTF_8.decode(fullBuffer))
+                val seq = BufSeq(Charsets.UTF_8.newDecoder().decode(fullBuffer).array())
                 val stream = RStream(sock.getOutputStream(), byteArray)
                 if (seq.startsWith("POST")) {
                     stream.response {
@@ -106,13 +106,13 @@ class SocketServer(val handler: MainHandler) {
         flush()
     }
 
-    class BufSeq(val chbuf: CharBuffer, val start: Int = 0, val end: Int = chbuf.length) : CharSequence {
+    class BufSeq(val charr: CharArray, val start: Int = 0, val end: Int = charr.size) : CharSequence {
         override val length: Int get() = end - start
 
-        override fun get(index: Int): Char = chbuf[start + index]
+        override fun get(index: Int): Char = charr[start + index]
 
-        override fun subSequence(startIndex: Int, endIndex: Int): CharSequence = BufSeq(chbuf, start + startIndex, start + endIndex)
+        override fun subSequence(startIndex: Int, endIndex: Int): CharSequence = BufSeq(charr, start + startIndex, start + endIndex)
 
-        override fun toString(): String = String(chbuf.array(), start, end - start)
+        override fun toString(): String = String(charr, start, end - start)
     }
 }
