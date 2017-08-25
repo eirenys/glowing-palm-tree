@@ -3,22 +3,22 @@ package io.highload.dao
 import io.highload.scheme.Location
 import io.highload.scheme.User
 import io.highload.scheme.Visit
-import kotlinx.coroutines.experimental.sync.Mutex
-import kotlinx.coroutines.experimental.sync.withLock
 import java.util.*
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  *
  */
-class StubDao : EntityDao() {
-    private val mutex = Mutex()
+class StubDao {
+    private val mutex = ReentrantLock()
     val users = TreeMap<Int, User>()
     val locations = TreeMap<Int, Location>()
     val visits = TreeMap<Int, Visit>()
     val visitsByUsers = TreeMap<UserVisitKey, Visit>()
     val visitsByLocation = TreeMap<LocationVisitKey, Visit>()
 
-    override suspend fun insert(user: User): Unit = mutex.withLock {
+    fun insert(user: User): Unit = mutex.withLock {
         if (user.id in users) {
             error("already inserted")
         }
@@ -26,7 +26,7 @@ class StubDao : EntityDao() {
         users.put(user.id, user)
     }
 
-    override suspend fun insert(location: Location): Unit = mutex.withLock {
+    fun insert(location: Location): Unit = mutex.withLock {
         if (location.id in locations) {
             error("already inserted")
         }
@@ -34,7 +34,7 @@ class StubDao : EntityDao() {
         locations.put(location.id, location)
     }
 
-    override suspend fun insert(visit: Visit): Unit = mutex.withLock {
+    fun insert(visit: Visit): Unit = mutex.withLock {
         if (visit.id in visits) {
             error("already inserted")
         }
@@ -44,7 +44,7 @@ class StubDao : EntityDao() {
         visitsByLocation.put(LocationVisitKey(visit.location, visit.id), visit)
     }
 
-    override suspend fun updateUser(id: Int, block: () -> User): User? = mutex.withLock {
+    fun updateUser(id: Int, block: () -> User): User? = mutex.withLock {
         users[id]?.also {
             it.modify(block())
 
@@ -53,7 +53,7 @@ class StubDao : EntityDao() {
         }
     }
 
-    suspend override fun updateLocation(id: Int, block: () -> Location): Location? = mutex.withLock {
+    fun updateLocation(id: Int, block: () -> Location): Location? = mutex.withLock {
         locations[id]?.also {
             it.modify(block())
 
@@ -62,7 +62,7 @@ class StubDao : EntityDao() {
         }
     }
 
-    suspend override fun updateVisit(id: Int, block: () -> Visit): Visit? = mutex.withLock {
+    fun updateVisit(id: Int, block: () -> Visit): Visit? = mutex.withLock {
         visits[id]?.also {
             val oldKey1 = UserVisitKey(it.user, it.visitedAt, it.id)
             val oldKey2 = LocationVisitKey(it.location, it.id)
@@ -78,24 +78,24 @@ class StubDao : EntityDao() {
         }
     }
 
-    override suspend fun findUser(id: Int): User? = mutex.withLock {
+    fun findUser(id: Int): User? {
         return users[id]
     }
 
-    override suspend fun findLocation(id: Int): Location? = mutex.withLock {
+    fun findLocation(id: Int): Location? {
         return locations[id]
     }
 
-    override suspend fun findVisit(id: Int): Visit? = mutex.withLock {
+    fun findVisit(id: Int): Visit? {
         return visits[id]
     }
 
-    suspend override fun findOrderedVisitsByUserId(userId: Int, fromDate: Int?, toDate: Int?): Collection<Visit>? = mutex.withLock {
+    fun findOrderedVisitsByUserId(userId: Int, fromDate: Int?, toDate: Int?): Collection<Visit>? {
         if (userId !in users) {
-            return@withLock null
+            return null
         }
         if (fromDate != null && toDate != null && fromDate >= toDate) {
-            return@withLock emptyList<Visit>()
+            return emptyList<Visit>()
         }
         return visitsByUsers.subMap(
                 UserVisitKey(userId, fromDate ?: Int.MIN_VALUE, Int.MAX_VALUE), false,
@@ -103,9 +103,9 @@ class StubDao : EntityDao() {
         ).values
     }
 
-    suspend override fun findVisitsByLocationId(locationId: Int): Collection<Visit>? = mutex.withLock {
+    fun findVisitsByLocationId(locationId: Int): Collection<Visit>?  {
         if (locationId !in locations) {
-            return@withLock null
+            return null
         }
         return visitsByLocation.subMap(
                 LocationVisitKey(locationId, Int.MIN_VALUE), false,

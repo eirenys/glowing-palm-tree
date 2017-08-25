@@ -1,6 +1,6 @@
 package io.highload.web
 
-import io.highload.dao.EntityDao
+import io.highload.dao.StubDao
 import io.highload.scheme.Visit
 import io.highload.scheme.Visit2
 import java.io.ByteArrayInputStream
@@ -11,8 +11,8 @@ import java.math.RoundingMode
 /**
  *
  */
-class MainHandler(val dao: EntityDao, val converter: JsonConverter) {
-    suspend fun get(path: CharSequence, query: CharSequence?): String? {
+class MainHandler(val dao: StubDao, val converter: JsonConverter) {
+    fun get(path: CharSequence, query: CharSequence?): String? {
         if (path.startsWith("/users/")) {
             if (path.endsWith("/visits")) {
                 val id = path.substring("/users/".length, path.length - "/visits".length).toIntOrNull()
@@ -26,7 +26,7 @@ class MainHandler(val dao: EntityDao, val converter: JsonConverter) {
             } else {
                 val id = path.substring("/users/".length).toIntOrNull()
                         ?: return null
-                return dao.findUser(id)?.toString() ?: return null
+                return dao.findUser(id)?.toString()
             }
         } else if (path.startsWith("/locations/")) {
             if (path.endsWith("/avg")) {
@@ -40,19 +40,17 @@ class MainHandler(val dao: EntityDao, val converter: JsonConverter) {
             } else {
                 val id = path.substring("/locations/".length).toIntOrNull()
                         ?: return null
-                return dao.findLocation(id)?.toString() ?: return null
+                return dao.findLocation(id)?.toString()
             }
         } else if (path.startsWith("/visits/")) {
             val id = path.substring("/visits/".length).toIntOrNull()
                     ?: return null
-            val result = dao.findVisit(id)
-                    ?: return null
-            return result.toString()
+            return dao.findVisit(id)?.toString()
         }
         return null
     }
 
-    suspend fun post(path: CharSequence, body: ByteArray): String? {
+    fun post(path: CharSequence, body: ByteArray): String? {
         if (body.isEmpty()) {
             error("empty body")
         }
@@ -97,7 +95,7 @@ class MainHandler(val dao: EntityDao, val converter: JsonConverter) {
         }
     }
 
-    suspend fun convertVisits(visits: Collection<Visit>, params: QueryParams): List<Visit2> {
+    fun convertVisits(visits: Collection<Visit>, params: QueryParams): List<Visit2> {
         return visits.mapNotNull {
             if ((params.fromDate == null || it.visitedAt > params.fromDate)
                     && (params.toDate == null || it.visitedAt < params.toDate)) {
@@ -112,7 +110,7 @@ class MainHandler(val dao: EntityDao, val converter: JsonConverter) {
         }
     }
 
-    suspend fun avg(visits: Collection<Visit>, params: QueryParams): BigDecimal {
+    fun avg(visits: Collection<Visit>, params: QueryParams): BigDecimal {
         val list = visits.mapNotNull {
             if ((params.fromDate == null || it.visitedAt > params.fromDate)
                     && (params.toDate == null || it.visitedAt < params.toDate)) {

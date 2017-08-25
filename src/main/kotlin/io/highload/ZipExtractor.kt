@@ -1,6 +1,6 @@
 package io.highload
 
-import io.highload.dao.EntityDao
+import io.highload.dao.StubDao
 import io.highload.web.JsonConverter
 import java.io.File
 import java.util.zip.ZipFile
@@ -8,10 +8,10 @@ import java.util.zip.ZipFile
 /**
  *
  */
-class ZipExtractor(val dao: EntityDao, val converter: JsonConverter) {
-    suspend fun extractResource(resource: String) = extract(this.javaClass.classLoader.getResource(resource).file)
+class ZipExtractor(val dao: StubDao, val converter: JsonConverter) {
+    fun extractResource(resource: String) = extract(this.javaClass.classLoader.getResource(resource).file)
 
-    suspend fun extract(path: String) {
+    fun extract(path: String) {
         val zip = ZipFile(File(path))
         try {
             for (e in zip.entries()) {

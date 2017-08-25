@@ -2,7 +2,6 @@ package io.highload.metrics
 
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
-import kotlin.coroutines.experimental.CoroutineContext
 
 /**
  *
@@ -12,7 +11,7 @@ object MetricsAggregator {
     val count = AtomicLong()
     val totalTime = AtomicLong()
 
-    fun startProduce(context: CoroutineContext) {
+    fun startProduce() {
         while (true) {
             Thread.sleep(5000)
             val a = mmm.get()

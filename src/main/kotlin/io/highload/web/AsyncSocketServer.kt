@@ -19,15 +19,11 @@ import kotlin.coroutines.experimental.CoroutineContext
  */
 class AsyncSocketServer(val handler: MainHandler, val context: CoroutineContext) {
     val chset = Charset.forName("UTF-8")
-    val agg = MetricsAggregator()
 
     fun start(port: Int) {
         val listener = AsynchronousServerSocketChannel.open().bind(InetSocketAddress(port))
-        agg.startProduce(context)
         listener.accept("", Handler(listener))
-        while (true) {
-            Thread.sleep(400)
-        }
+        MetricsAggregator.startProduce()
     }
 
     inline suspend fun AsynchronousSocketChannel.response(block: () -> String?) {
@@ -127,7 +123,7 @@ class AsyncSocketServer(val handler: MainHandler, val context: CoroutineContext)
 
                 } finally {
                     m.end()
-                    agg.save(m)
+                    MetricsAggregator.save(m)
                 }
             }
         }
