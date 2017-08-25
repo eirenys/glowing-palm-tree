@@ -1,8 +1,6 @@
 package io.highload.dao
 
-import io.highload.scheme.Location
-import io.highload.scheme.User
-import io.highload.scheme.Visit
+import io.highload.scheme.*
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -14,31 +12,18 @@ import kotlin.test.assertNotNull
  */
 class StubDaoTest {
     val dao = StubDao()
-    val user = User()
-    val location = Location()
+    val user = makeUser(10)
+    val location = makeLocation(20)
     val visits: List<Visit>
 
     init {
-        user[0] = 10
-        user[1] = "email"
-        user[2] = "firstName"
-        user[3] = "lastName"
-        user[4] = 'm'
-        user[5] = 11
-        location[0] = 20
-        location[1] = "place"
-        location[2] = "country"
-        location[3] = "city"
-        location[4] = 21
-
         visits = (0..9).map { i ->
-            val vis = Visit()
-            vis[0] = 30 + i
-            vis[1] = 20 + (i / 5)
-            vis[2] = 10
-            vis[3] = 9 - (i / 2)
-            vis[4] = 3
-            vis
+            makeVisit(
+                    id = 30 + i,
+                    userId = 10,
+                    locId = 20 + (i / 5),
+                    distance = 9 - (i / 2),
+                    mark = 3)
         }
 
         runBlocking {

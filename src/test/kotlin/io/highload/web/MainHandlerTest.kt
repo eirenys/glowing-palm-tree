@@ -2,8 +2,8 @@ package io.highload.web
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.highload.dao.StubDao
-import io.highload.scheme.Location
-import io.highload.scheme.Visit
+import io.highload.scheme.makeLocation
+import io.highload.scheme.makeVisit
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -17,14 +17,9 @@ class MainHandlerTest {
     val dao = StubDao()
     val handler = MainHandler(dao, JacksonConverter(ObjectMapper()))
     val emptyParams = QueryParams(null, null, null, null, null, null, null)
-    val location = Location()
+    val location = makeLocation(123)
 
     init {
-        location[0] = 123
-        location[1] = "place"
-        location[2] = "country"
-        location[3] = "city"
-        location[4] = 1000
         runBlocking {
             dao.insert(location)
         }
@@ -41,7 +36,7 @@ class MainHandlerTest {
 
     @Test
     fun convertVisitsTest() = runBlocking {
-        val visits = listOf(visit(), visit())
+        val visits = listOf(makeVisit(1, 123, 0, 0, 0), makeVisit(2, 123, 0, 0, 0))
         val result = handler.convertVisits(visits, emptyParams)
         assertEquals(2, result.size)
     }
@@ -53,15 +48,5 @@ class MainHandlerTest {
         assertEquals(BigDecimal("3.66667"), result)
     }
 
-    private fun visit() = Visit().also {
-        it[0] = 0
-        it[1] = 123
-        it[2] = 0
-        it[3] = 0
-        it[4] = 0
-    }
-
-    private fun mark(mark: Int) = Visit().also {
-        it[4] = mark
-    }
+    private fun mark(mark: Int) = makeVisit(0, 0, 0, 0, mark)
 }
