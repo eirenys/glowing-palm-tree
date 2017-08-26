@@ -26,32 +26,47 @@ class ZipExtractor(val dao: StubDao, val converter: JsonConverter) {
                     val job = if (name.contains("users")) {
                         launch(CommonPool) {
                             MetricsAggregator.startedImp.incrementAndGet()
-                            zip.getInputStream(e).use {
-                                converter.parseUsers(it).forEach {
-                                    dao.insert(it)
+                            try {
+                                zip.getInputStream(e).use {
+                                    converter.parseUsers(it).forEach {
+                                        dao.insert(it)
+                                    }
                                 }
+                            } catch (e: Throwable) {
+                                println(e.message)
+                            } finally {
+                                MetricsAggregator.endedImp.incrementAndGet()
                             }
-                            MetricsAggregator.endedImp.incrementAndGet()
                         }
                     } else if (name.contains("locations")) {
                         launch(CommonPool) {
                             MetricsAggregator.startedImp.incrementAndGet()
-                            zip.getInputStream(e).use {
-                                converter.parseLocations(it).forEach {
-                                    dao.insert(it)
+                            try {
+                                zip.getInputStream(e).use {
+                                    converter.parseLocations(it).forEach {
+                                        dao.insert(it)
+                                    }
                                 }
+                            } catch (e: Throwable) {
+                                println(e.message)
+                            } finally {
+                                MetricsAggregator.endedImp.incrementAndGet()
                             }
-                            MetricsAggregator.endedImp.incrementAndGet()
                         }
                     } else if (name.contains("visits")) {
                         launch(CommonPool) {
                             MetricsAggregator.startedImp.incrementAndGet()
-                            zip.getInputStream(e).use {
-                                converter.parseVisits(it).forEach {
-                                    dao.insert(it)
+                            try {
+                                zip.getInputStream(e).use {
+                                    converter.parseVisits(it).forEach {
+                                        dao.insert(it)
+                                    }
                                 }
+                            } catch (e: Throwable) {
+                                println(e.message)
+                            } finally {
+                                MetricsAggregator.endedImp.incrementAndGet()
                             }
-                            MetricsAggregator.endedImp.incrementAndGet()
                         }
                     } else {
                         null
