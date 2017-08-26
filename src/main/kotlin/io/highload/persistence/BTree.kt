@@ -7,7 +7,7 @@ import kotlin.concurrent.withLock
 /**
  *
  */
-class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 1024) : Iterable<T> {
+class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 4096) : Iterable<T> {
     private val mutex = ReentrantLock()
     private var lowest = BTreeNode(comparator, nodeSize)
     private var nodes: Array<BTreeNode<T>> = emptyArray()
