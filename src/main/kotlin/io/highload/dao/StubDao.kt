@@ -12,13 +12,12 @@ import kotlin.concurrent.withLock
  *
  */
 class StubDao {
-    private val CHUNK_SIZE = 1024
     private val mutex = ReentrantLock()
-    val users = BTree<User>(Comparator { o1, o2 -> o1.id.compareTo(o2.id) }, CHUNK_SIZE)
-    val locations = BTree<Location>(Comparator { o1, o2 -> o1.id.compareTo(o2.id) }, CHUNK_SIZE)
-    val visits = BTree<Visit>(Comparator { o1, o2 -> o1.id.compareTo(o2.id) }, CHUNK_SIZE)
-    val visitsByUsers = BTree<Visit>(UserVisitComparator(), CHUNK_SIZE)
-    val visitsByLocation = BTree<Visit>(LocationVisitComparator(), CHUNK_SIZE)
+    val users = BTree<User>(Comparator { o1, o2 -> o1.id.compareTo(o2.id) })
+    val locations = BTree<Location>(Comparator { o1, o2 -> o1.id.compareTo(o2.id) })
+    val visits = BTree<Visit>(Comparator { o1, o2 -> o1.id.compareTo(o2.id) })
+    val visitsByUsers = BTree(UserVisitComparator())
+    val visitsByLocation = BTree(LocationVisitComparator())
 
     fun insert(user: User): Unit = mutex.withLock {
         if (users[user] != null) {
@@ -70,8 +69,9 @@ class StubDao {
 
             new.modify(block())
 
-//            visitsByUsers.remove(old)
-//            visitsByLocation.remove(old) todo
+            visits.remove(it)
+            visitsByUsers.remove(it)
+            visitsByLocation.remove(it)
             visits.put(new)
             visitsByUsers.put(new)
             visitsByLocation.put(new)

@@ -54,6 +54,16 @@ class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 2048, val maxA
         return if (index.exists) node[index.position] else null
     }
 
+    fun remove(value: T) {
+        val nodeIndex = findNodeIndex(value)
+        loadNode(nodeIndex)
+        val node = if (nodeIndex == -1) lowest else nodes[nodeIndex]
+        val index = node.findIndex(value)
+        if (index.exists) {
+            node.remove(index.position)
+        }
+    }
+
     override fun iterator(): Iterator<T> {
         return object : Iterator<T> {
             var index = -1

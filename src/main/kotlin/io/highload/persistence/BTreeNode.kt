@@ -39,12 +39,7 @@ class BTreeNode<T>(val comparator: Comparator<T>, val capacity: Int) : Iterable<
     }
 
     @Suppress("UNCHECKED_CAST")
-    operator fun get(index: Int): T  {
-        if (index >= values.size) {
-            error("asfasfasfs")
-        }
-        return values[index] as T
-    }
+    operator fun get(index: Int): T = values[index] as T
 
     fun findIndex(value: T): KeyIndex {
         var low = 0
