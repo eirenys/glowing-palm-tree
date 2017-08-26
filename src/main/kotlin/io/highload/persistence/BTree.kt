@@ -1,14 +1,14 @@
 package io.highload.persistence
 
-import kotlinx.coroutines.experimental.sync.Mutex
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  *
  */
-class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 2048, val maxActive: Int = 80) : Iterable<T> {
-    private val mutex = Mutex()
-    private val activeNodes = AtomicInteger()
+class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 1024) : Iterable<T> {
+    private val mutex = ReentrantLock()
     private var lowest = BTreeNode(comparator, nodeSize)
     private var nodes: Array<BTreeNode<T>> = emptyArray()
 
@@ -19,26 +19,29 @@ class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 2048, val maxA
         loadNode(nodeIndex)
         val node = getNode(nodeIndex)
         val index = node.findIndex(value)
-        if (index.exists) {
-            node.replace(index.position, value)
-        } else {
-            if (node.freeSpace > 0) {
-                node.insert(index.position, value)
+
+        node.mutex.withLock {
+            if (index.exists) {
+                node.replace(index.position, value)
             } else {
-                if (index.position == 0) {
-                    val new = BTreeNode(comparator, nodeSize)
-                    new.insert(0, value)
-                    putNode(nodeIndex, new)
-                } else if (index.position == nodeSize) {
-                    val new = BTreeNode(comparator, nodeSize)
-                    new.insert(0, value)
-                    putNode(nodeIndex + 1, new)
+                if (node.freeSpace > 0) {
+                    node.insert(index.position, value)
                 } else {
-                    val splitted = node.split(index.position)
-                    putNode(nodeIndex + 1, splitted)
-                    val index2 = node.findIndex(value)
-                    assert(node.freeSpace > 0)
-                    node.insert(index2.position, value)
+                    if (index.position == 0) {
+                        val new = BTreeNode(comparator, nodeSize)
+                        new.insert(0, value)
+                        putNode(nodeIndex, new)
+                    } else if (index.position == nodeSize) {
+                        val new = BTreeNode(comparator, nodeSize)
+                        new.insert(0, value)
+                        putNode(nodeIndex + 1, new)
+                    } else {
+                        val splitted = node.split(index.position)
+                        putNode(nodeIndex + 1, splitted)
+                        val index2 = node.findIndex(value)
+                        assert(node.freeSpace > 0)
+                        node.insert(index2.position, value)
+                    }
                 }
             }
         }
@@ -46,7 +49,7 @@ class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 2048, val maxA
         return index.exists
     }
 
-    operator fun get(value: T): T? {
+    fun get(value: T): T? {
         val nodeIndex = findNodeIndex(value)
         loadNode(nodeIndex)
         val node = getNode(nodeIndex)
@@ -72,7 +75,7 @@ class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 2048, val maxA
         loadNode(ni1)
         val node1 = getNode(ni1)
         val ind = node1.findIndex(left).position
-        for(j in ind..node1.size - 1) {
+        for (j in ind..node1.size - 1) {
             val value = node1[j]
             if (comparator.compare(value, right) >= 0) {
                 break
@@ -85,7 +88,7 @@ class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 2048, val maxA
             loadNode(i)
             val node = getNode(i)
 
-            for(j in 0..node.size - 1) {
+            for (j in 0..node.size - 1) {
                 val value = node[j]
                 if (comparator.compare(value, right) >= 0) {
                     break
@@ -146,7 +149,7 @@ class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 2048, val maxA
 
     private fun getNode(index: Int): BTreeNode<T> = if (index == -1) lowest else nodes[index]
 
-    private fun putNode(index: Int, node: BTreeNode<T>) {
+    private fun putNode(index: Int, node: BTreeNode<T>) = mutex.withLock {
         @Suppress("UNCHECKED_CAST")
         val new = arrayOfNulls<BTreeNode<T>>(nodes.size + 1) as Array<BTreeNode<T>>
 
@@ -168,28 +171,37 @@ class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 2048, val maxA
         }
 
         nodes = new
-        activeNodes.incrementAndGet()
+        ACTIVE_NODES.incrementAndGet()
     }
 
     private fun loadNode(index: Int) {
         if (index != -1) {
             val node = nodes[index]
             node.accessTime = System.currentTimeMillis()
-            unloadOldestNode()
+
+            if (ACTIVE_NODES.get() > MAX_ACTIVE_NODES) {
+                nodes.filter { it.loaded }.sortedBy { it.accessTime }.take(8).forEach {
+                    it.mutex.withLock {
+                        if (it.loaded) {
+                            it.unload()
+                            ACTIVE_NODES.decrementAndGet()
+                        }
+                    }
+                }
+            }
             if (!node.loaded) {
-                node.load()
+                node.mutex.withLock {
+                    if (!node.loaded) {
+                        node.load()
+                        ACTIVE_NODES.incrementAndGet()
+                    }
+                }
             }
         }
     }
 
-    private fun unloadOldestNode() {
-        if (activeNodes.get() > maxActive) {
-            nodes.minBy { it.accessTime }?.let {
-                if (it.loaded) {
-                    it.unload()
-                    activeNodes.decrementAndGet()
-                }
-            }
-        }
+    companion object {
+        private val MAX_ACTIVE_NODES = 512
+        private val ACTIVE_NODES = AtomicInteger()
     }
 }

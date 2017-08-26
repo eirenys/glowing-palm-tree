@@ -5,38 +5,35 @@ import io.highload.scheme.Location
 import io.highload.scheme.User
 import io.highload.scheme.Visit
 import java.util.*
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 /**
  *
  */
 class StubDao {
-    private val mutex = ReentrantLock()
     val users = BTree<User>(Comparator { o1, o2 -> o1.id.compareTo(o2.id) })
     val locations = BTree<Location>(Comparator { o1, o2 -> o1.id.compareTo(o2.id) })
     val visits = BTree<Visit>(Comparator { o1, o2 -> o1.id.compareTo(o2.id) })
     val visitsByUsers = BTree(UserVisitComparator())
     val visitsByLocation = BTree(LocationVisitComparator())
 
-    fun insert(user: User): Unit = mutex.withLock {
-        if (users[user] != null) {
+    fun insert(user: User) {
+        if (users.get(user) != null) {
             error("already inserted")
         }
         user.checkEntity()
         users.put(user)
     }
 
-    fun insert(location: Location): Unit = mutex.withLock {
-        if (locations[location] != null) {
+    fun insert(location: Location) {
+        if (locations.get(location) != null) {
             error("already inserted")
         }
         location.checkEntity()
         locations.put(location)
     }
 
-    fun insert(visit: Visit): Unit = mutex.withLock {
-        if (visits[visit] != null) {
+    fun insert(visit: Visit) {
+        if (visits.get(visit) != null) {
             error("already inserted")
         }
         visit.checkEntity()
@@ -45,22 +42,22 @@ class StubDao {
         visitsByLocation.put(visit)
     }
 
-    fun updateUser(id: Int, block: () -> User): User? = mutex.withLock {
-        users[User(id)]?.also {
+    fun updateUser(id: Int, block: () -> User): User? {
+        return users.get(User(id))?.also {
             it.modify(block())
             users.put(it)
         }
     }
 
-    fun updateLocation(id: Int, block: () -> Location): Location? = mutex.withLock {
-        locations[Location(id)]?.also {
+    fun updateLocation(id: Int, block: () -> Location): Location? {
+        return locations.get(Location(id))?.also {
             it.modify(block())
             locations.put(it)
         }
     }
 
-    fun updateVisit(id: Int, block: () -> Visit): Visit? = mutex.withLock {
-        visits[Visit(id)]?.also {
+    fun updateVisit(id: Int, block: () -> Visit): Visit? {
+        return visits.get(Visit(id))?.also {
             val new = Visit(it.id)
             new[1] = it.location
             new[2] = it.user
@@ -79,19 +76,19 @@ class StubDao {
     }
 
     fun findUser(id: Int): User? {
-        return users[User(id)]
+        return users.get(User(id))
     }
 
     fun findLocation(id: Int): Location? {
-        return locations[Location(id)]
+        return locations.get(Location(id))
     }
 
     fun findVisit(id: Int): Visit? {
-        return visits[Visit(id)]
+        return visits.get(Visit(id))
     }
 
     fun findOrderedVisitsByUserId(userId: Int, fromDate: Int?, toDate: Int?): Collection<Visit>? {
-        if (users[User(userId)] == null) {
+        if (users.get(User(userId)) == null) {
             return null
         }
         if (fromDate != null && toDate != null && fromDate >= toDate) {
@@ -115,7 +112,7 @@ class StubDao {
     }
 
     fun findVisitsByLocationId(locationId: Int): Collection<Visit>?  {
-        if (locations[Location(locationId)] == null) {
+        if (locations.get(Location(locationId)) == null) {
             return null
         }
         val left = Visit().also {

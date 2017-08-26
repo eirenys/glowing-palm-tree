@@ -2,11 +2,10 @@ package io.highload.persistence
 
 import kotlinx.coroutines.experimental.newFixedThreadPoolContext
 import kotlinx.coroutines.experimental.run
-import kotlinx.coroutines.experimental.sync.Mutex
-import kotlinx.coroutines.experimental.sync.withLock
 import java.io.*
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.locks.ReentrantLock
 
 /**
  *
@@ -21,7 +20,7 @@ class BTreeNode<T>(val comparator: Comparator<T>, val capacity: Int) : Iterable<
         File.createTempFile(id, id)
     }
 
-    val mutex = Mutex()
+    val mutex = ReentrantLock()
     var size = 0
     val loaded get() = isload
     var accessTime = System.currentTimeMillis()
@@ -145,34 +144,22 @@ class BTreeNode<T>(val comparator: Comparator<T>, val capacity: Int) : Iterable<
 
     override fun toString(): String = min.toString()
 
-    suspend fun awaitUnload() {
-        if (!loaded) {
-            return
-        }
-        mutex.withLock {
-            run(loaderContext) {
-                if (loaded) {
-                    unload()
-                }
-            }
+    suspend fun awaitUnload() = run(loaderContext) {
+        try {
+            unload()
+        } catch (e: Throwable) {
         }
     }
 
-    suspend fun awaitLoad() {
-        if (loaded) {
-            return
-        }
-        mutex.withLock {
-            run(loaderContext) {
-                if (!loaded) {
-                    load()
-                }
-            }
+    suspend fun awaitLoad() = run(loaderContext) {
+        try {
+            load()
+        } catch (e: Throwable) {
         }
     }
 
     companion object {
         private val nextId = AtomicLong()
-        private val loaderContext = newFixedThreadPoolContext(10, "file-io")
+        private val loaderContext = newFixedThreadPoolContext(4, "file-io")
     }
 }

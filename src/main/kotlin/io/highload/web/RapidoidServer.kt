@@ -58,6 +58,7 @@ class RapidoidServer(val handler: MainHandler) : AbstractHttpServer() {
             if (json != null) {
                 startResponse(ctx, keepAlive)
                 writeBody(ctx, json, medType)
+                ctx.closeIf(!keepAlive)
             } else {
                 ctx.write(HTTP_404)
                 ctx.closeIf(!keepAlive)

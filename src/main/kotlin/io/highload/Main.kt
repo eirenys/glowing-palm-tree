@@ -10,6 +10,7 @@ import io.highload.web.MainHandler
 import io.highload.web.RapidoidServer
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
 
 /**
  *
@@ -33,14 +34,16 @@ fun main(args: Array<String>) {
     val handler = MainHandler(dao, converter)
 
     // init phase
-    try {
-        dao.findUser(1)
-        handler.get("/users/1/visits", null)
-    } catch (e: Throwable) {
-    }
-    try {
-        handler.post("/users/1", "{}".toByteArray())
-    } catch (e: Throwable) {
+    runBlocking {
+        try {
+            dao.findUser(1)
+            handler.get("/users/1/visits", null)
+        } catch (e: Throwable) {
+        }
+        try {
+            handler.post("/users/1", "{}".toByteArray())
+        } catch (e: Throwable) {
+        }
     }
 
     launch(CommonPool) {
