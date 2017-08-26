@@ -1,18 +1,29 @@
 package io.highload.persistence
 
-import java.io.RandomAccessFile
+import kotlinx.coroutines.experimental.sync.Mutex
+import java.io.*
 import java.util.*
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  *
  */
-class BTreeNode<T>(val comparator: Comparator<T>, capacity: Int) : Iterable<T> {
+class BTreeNode<T>(val comparator: Comparator<T>, val capacity: Int) : Iterable<T> {
     private var size = 0
-    private val values = arrayOfNulls<Any?>(capacity)
-    private val buffer = arrayOfNulls<Any?>(capacity)
+    private var values = arrayOfNulls<Any?>(capacity)
+    private var buffer = arrayOfNulls<Any?>(capacity)
+    private var isload = true
+    private var savedMin: T? = null
+    private val file: File by lazy {
+        val id = "temp" + nextId.getAndIncrement()
+        File.createTempFile(id, id)
+    }
 
+    val mutex = Mutex()
+    val loaded get() = isload
+    var accessTime = System.currentTimeMillis()
     val freeSpace: Int get() = values.size - size
-    val min: T get() = this[0]
+    val min: T get() = if (isload) this[0] else savedMin!!
 
     override fun iterator(): Iterator<T> {
         return object : Iterator<T> {
@@ -28,7 +39,12 @@ class BTreeNode<T>(val comparator: Comparator<T>, capacity: Int) : Iterable<T> {
     }
 
     @Suppress("UNCHECKED_CAST")
-    operator fun get(index: Int): T = values[index] as T
+    operator fun get(index: Int): T  {
+        if (index >= values.size) {
+            error("asfasfasfs")
+        }
+        return values[index] as T
+    }
 
     fun findIndex(value: T): KeyIndex {
         var low = 0
@@ -102,10 +118,40 @@ class BTreeNode<T>(val comparator: Comparator<T>, capacity: Int) : Iterable<T> {
         return new
     }
 
-    fun later() {
-        val file = RandomAccessFile("asfas", "rwd")
-        file.read()
+    fun unload() {
+        if (loaded) {
+            ObjectOutputStream(FileOutputStream(file)).use {
+                it.writeInt(size)
+                for (i in 0..size - 1) {
+                    it.writeObject(this[i])
+                }
+
+                savedMin = this[0]
+                isload = false
+                values = emptyArray()
+                buffer = emptyArray()
+                accessTime = Long.MAX_VALUE
+            }
+        }
+    }
+
+    fun load() {
+        if (!loaded) {
+            ObjectInputStream(FileInputStream(file)).use {
+                size = it.readInt()
+                values = arrayOfNulls(capacity)
+                buffer = arrayOfNulls(capacity)
+                for (i in 0..size - 1) {
+                    values[i] = it.readObject()
+                }
+                isload = true
+            }
+        }
     }
 
     override fun toString(): String = min.toString()
+
+    companion object {
+        private val nextId = AtomicLong()
+    }
 }

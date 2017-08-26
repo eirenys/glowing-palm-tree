@@ -1,9 +1,13 @@
 package io.highload.scheme
 
+import java.io.Externalizable
+import java.io.ObjectInput
+import java.io.ObjectOutput
+
 /**
  *
  */
-abstract class Entity(size: Int) {
+abstract class Entity(size: Int) : Externalizable {
     protected val values = arrayOfNulls<Any?>(size)
 
     open fun toByteChain(next: ByteChain?): ByteChain = ByteChain(toString().toByteArray(), next)
@@ -28,4 +32,16 @@ abstract class Entity(size: Int) {
     }
 
     fun toByteArray(): ByteArray = toByteChain(null).toByteArray()
+
+    override fun readExternal(inp: ObjectInput) {
+        for (i in 0..values.size - 1) {
+            values[i] = inp.readObject()
+        }
+    }
+
+    override fun writeExternal(out: ObjectOutput) {
+        for (i in 0..values.size - 1) {
+            out.writeObject(values[i])
+        }
+    }
 }

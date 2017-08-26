@@ -133,4 +133,12 @@ class BTreeNodeTest {
         assertEquals(listOf(10), treeNode.toList())
         assertEquals(listOf(20, 30, 40), new.toList())
     }
+
+    @Test
+    fun unloadLoadTest() {
+        treeNode.insert(0, 10)
+        treeNode.unload()
+        treeNode.load()
+        assertEquals(listOf(10), treeNode.toList())
+    }
 }

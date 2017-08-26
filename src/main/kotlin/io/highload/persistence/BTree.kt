@@ -1,12 +1,14 @@
 package io.highload.persistence
 
 import kotlinx.coroutines.experimental.sync.Mutex
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  *
  */
-class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 64) : Iterable<T> {
+class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 2048, val maxActive: Int = 80) : Iterable<T> {
     private val mutex = Mutex()
+    private val activeNodes = AtomicInteger()
     private var lowest = BTreeNode(comparator, nodeSize)
     private var nodes: Array<BTreeNode<T>> = emptyArray()
 
@@ -49,7 +51,7 @@ class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 64) : Iterable
         loadNode(nodeIndex)
         val node = if (nodeIndex == -1) lowest else nodes[nodeIndex]
         val index = node.findIndex(value)
-        return if(index.exists) node[index.position] else null
+        return if (index.exists) node[index.position] else null
     }
 
     override fun iterator(): Iterator<T> {
@@ -74,7 +76,7 @@ class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 64) : Iterable
     }
 
     private fun findNodeIndex(value: T): Int {
-        if (nodes.size == 0) {
+        if (nodes.isEmpty()) {
             return -1
         }
 
@@ -97,7 +99,7 @@ class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 64) : Iterable
                 greater = false
             }
         }
-        return if (greater) mid else mid -1
+        return if (greater) mid else mid - 1
     }
 
 
@@ -123,8 +125,28 @@ class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 64) : Iterable
         }
 
         nodes = new
+        activeNodes.incrementAndGet()
     }
 
     private fun loadNode(index: Int) {
+        if (index != -1) {
+            val node = nodes[index]
+            node.accessTime = System.currentTimeMillis()
+            unloadOldestNode()
+            if (!node.loaded) {
+                node.load()
+            }
+        }
+    }
+
+    private fun unloadOldestNode() {
+        if (activeNodes.get() > maxActive) {
+            nodes.minBy { it.accessTime }?.let {
+                if (it.loaded) {
+                    it.unload()
+                    activeNodes.decrementAndGet()
+                }
+            }
+        }
     }
 }
