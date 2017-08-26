@@ -1,38 +1,36 @@
 package io.highload.persistence
 
+import java.io.RandomAccessFile
 import java.util.*
 
 /**
  *
  */
-class BTreeNode<K, V>(val comparator: Comparator<K>, capacity: Int) : Iterable<Pair<K, V>> {
+class BTreeNode<T>(val comparator: Comparator<T>, capacity: Int) : Iterable<T> {
     private var size = 0
-    private val keys = arrayOfNulls<Any?>(capacity)
     private val values = arrayOfNulls<Any?>(capacity)
     private val buffer = arrayOfNulls<Any?>(capacity)
 
-    val freeSpace: Int get() = keys.size - size
+    val freeSpace: Int get() = values.size - size
+    val min: T get() = this[0]
 
-    override fun iterator(): Iterator<Pair<K, V>> {
-        return object : Iterator<Pair<K, V>> {
+    override fun iterator(): Iterator<T> {
+        return object : Iterator<T> {
             var index = 0
             override fun hasNext(): Boolean = (index < size)
 
-            override fun next(): Pair<K, V> {
+            override fun next(): T {
                 val i = index
                 index++
-                return getKey(i) to getValue(i)
+                return this@BTreeNode[i]
             }
         }
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun getKey(index: Int): K = keys[index] as K
+    operator fun get(index: Int): T = values[index] as T
 
-    @Suppress("UNCHECKED_CAST")
-    fun getValue(index: Int): V = values[index] as V
-
-    fun findIndex(key: K): KeyIndex {
+    fun findIndex(value: T): KeyIndex {
         var low = 0
         var high = size - 1
 
@@ -41,7 +39,7 @@ class BTreeNode<K, V>(val comparator: Comparator<K>, capacity: Int) : Iterable<P
 
         while (low <= high) {
             mid = (low + high) ushr 1
-            val cmp = comparator.compare(key, getKey(mid))
+            val cmp = comparator.compare(value, this[mid])
             if (cmp == 0) {
                 return KeyIndex(true, mid)
             } else if (cmp > 0) {
@@ -56,14 +54,10 @@ class BTreeNode<K, V>(val comparator: Comparator<K>, capacity: Int) : Iterable<P
         return KeyIndex(false, idx)
     }
 
-    fun insert(index: Int, key: K, value: V) {
-        if (index > size || size == keys.size) {
+    fun insert(index: Int, value: T) {
+        if (index > size || size == values.size) {
             throw ArrayIndexOutOfBoundsException(index)
         }
-
-        System.arraycopy(keys, index, buffer, 0, size - index)
-        keys[index] = key
-        System.arraycopy(buffer, 0, keys, index + 1, size - index)
 
         System.arraycopy(values, index, buffer, 0, size - index)
         values[index] = value
@@ -72,12 +66,11 @@ class BTreeNode<K, V>(val comparator: Comparator<K>, capacity: Int) : Iterable<P
         size++
     }
 
-    fun replace(index: Int, key: K, value: V) {
+    fun replace(index: Int, value: T) {
         if (index >= size) {
             throw ArrayIndexOutOfBoundsException(index)
         }
 
-        keys[index] = key
         values[index] = value
     }
 
@@ -86,8 +79,6 @@ class BTreeNode<K, V>(val comparator: Comparator<K>, capacity: Int) : Iterable<P
             throw ArrayIndexOutOfBoundsException(index)
         }
 
-        System.arraycopy(keys, index + 1, buffer, 0, size - index - 1)
-        System.arraycopy(buffer, 0, keys, index, size - index - 1)
         System.arraycopy(values, index + 1, buffer, 0, size - index - 1)
         System.arraycopy(buffer, 0, values, index, size - index - 1)
 
@@ -98,17 +89,23 @@ class BTreeNode<K, V>(val comparator: Comparator<K>, capacity: Int) : Iterable<P
      * Разделение нода, текущий нод получает значения до индекса не включительно, а новый всё остальное
      * При идексе == 0, текущий станет пустым, а новый получит все элементы
      */
-    fun split(index: Int): BTreeNode<K, V> {
+    fun split(index: Int): BTreeNode<T> {
         if (index >= size) {
             throw ArrayIndexOutOfBoundsException(index)
         }
 
-        val new = BTreeNode<K, V>(comparator, keys.size)
-        System.arraycopy(keys, index, new.keys, 0, size - index)
+        val new = BTreeNode(comparator, values.size)
         System.arraycopy(values, index, new.values, 0, size - index)
         new.size = size - index
         size = index
 
         return new
     }
+
+    fun later() {
+        val file = RandomAccessFile("asfas", "rwd")
+        file.read()
+    }
+
+    override fun toString(): String = min.toString()
 }
