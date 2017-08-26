@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicLong
  *
  */
 class BTreeNode<T>(val comparator: Comparator<T>, val capacity: Int) : Iterable<T> {
-    private var size = 0
     private var values = arrayOfNulls<Any?>(capacity)
     private var buffer = arrayOfNulls<Any?>(capacity)
     private var isload = true
@@ -20,6 +19,7 @@ class BTreeNode<T>(val comparator: Comparator<T>, val capacity: Int) : Iterable<
     }
 
     val mutex = Mutex()
+    var size = 0
     val loaded get() = isload
     var accessTime = System.currentTimeMillis()
     val freeSpace: Int get() = values.size - size

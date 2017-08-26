@@ -97,21 +97,41 @@ class StubDao {
         if (fromDate != null && toDate != null && fromDate >= toDate) {
             return emptyList()
         }
-        TODO()
-//        return visitsByUsers.subMap(
-//                UserVisitKey(userId, fromDate ?: Int.MIN_VALUE, Int.MAX_VALUE), false,
-//                UserVisitKey(userId, toDate ?: Int.MAX_VALUE, Int.MIN_VALUE), false
-//        ).values
+        val left = Visit().also {
+            it[0] = Int.MAX_VALUE
+            it[1] = 0
+            it[2] = userId
+            it[3] = fromDate ?: Int.MIN_VALUE
+            it[4] = 0
+        }
+        val right = Visit().also {
+            it[0] = Int.MIN_VALUE
+            it[1] = 0
+            it[2] = userId
+            it[3] = toDate ?: Int.MAX_VALUE
+            it[4] = 0
+        }
+        return visitsByUsers.subMap(left, right)
     }
 
     fun findVisitsByLocationId(locationId: Int): Collection<Visit>?  {
         if (locations[Location(locationId)] == null) {
             return null
         }
-        TODO()
-//        return visitsByLocation.subMap(
-//                LocationVisitKey(locationId, Int.MIN_VALUE), false,
-//                LocationVisitKey(locationId, Int.MAX_VALUE), false
-//        ).values
+        val left = Visit().also {
+            it[0] = Int.MIN_VALUE
+            it[1] = locationId
+            it[2] = 0
+            it[3] = 0
+            it[4] = 0
+        }
+        val right = Visit().also {
+            it[0] = Int.MAX_VALUE
+            it[1] = locationId
+            it[2] = 0
+            it[3] = 0
+            it[4] = 0
+        }
+        return visitsByLocation.subMap(left, right)
     }
 }

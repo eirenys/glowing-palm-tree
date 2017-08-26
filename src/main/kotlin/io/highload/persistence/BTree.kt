@@ -17,7 +17,7 @@ class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 2048, val maxA
     fun put(value: T): Boolean {
         val nodeIndex = findNodeIndex(value)
         loadNode(nodeIndex)
-        val node = if (nodeIndex == -1) lowest else nodes[nodeIndex]
+        val node = getNode(nodeIndex)
         val index = node.findIndex(value)
         if (index.exists) {
             node.replace(index.position, value)
@@ -49,7 +49,7 @@ class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 2048, val maxA
     operator fun get(value: T): T? {
         val nodeIndex = findNodeIndex(value)
         loadNode(nodeIndex)
-        val node = if (nodeIndex == -1) lowest else nodes[nodeIndex]
+        val node = getNode(nodeIndex)
         val index = node.findIndex(value)
         return if (index.exists) node[index.position] else null
     }
@@ -57,11 +57,43 @@ class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 2048, val maxA
     fun remove(value: T) {
         val nodeIndex = findNodeIndex(value)
         loadNode(nodeIndex)
-        val node = if (nodeIndex == -1) lowest else nodes[nodeIndex]
+        val node = getNode(nodeIndex)
         val index = node.findIndex(value)
         if (index.exists) {
             node.remove(index.position)
         }
+    }
+
+    fun subMap(left: T, right: T): List<T> {
+        val list = mutableListOf<T>()
+        val ni1 = findNodeIndex(left)
+        val ni2 = findNodeIndex(right)
+
+        loadNode(ni1)
+        val node1 = getNode(ni1)
+        val ind = node1.findIndex(left).position
+        for(j in ind..node1.size - 1) {
+            val value = node1[j]
+            if (comparator.compare(value, right) >= 0) {
+                break
+            }
+            list.add(value)
+        }
+
+
+        for (i in (ni1 + 1)..ni2) {
+            loadNode(i)
+            val node = getNode(i)
+
+            for(j in 0..node.size - 1) {
+                val value = node[j]
+                if (comparator.compare(value, right) >= 0) {
+                    break
+                }
+                list.add(value)
+            }
+        }
+        return list
     }
 
     override fun iterator(): Iterator<T> {
@@ -112,6 +144,7 @@ class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 2048, val maxA
         return if (greater) mid else mid - 1
     }
 
+    private fun getNode(index: Int): BTreeNode<T> = if (index == -1) lowest else nodes[index]
 
     private fun putNode(index: Int, node: BTreeNode<T>) {
         @Suppress("UNCHECKED_CAST")
