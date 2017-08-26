@@ -1,5 +1,6 @@
 package io.highload.dao
 
+import io.highload.persistence.BTree
 import io.highload.scheme.Location
 import io.highload.scheme.User
 import io.highload.scheme.Visit
@@ -11,105 +12,106 @@ import kotlin.concurrent.withLock
  *
  */
 class StubDao {
+    private val CHUNK_SIZE = 1024
     private val mutex = ReentrantLock()
-    val users = TreeMap<Int, User>()
-    val locations = TreeMap<Int, Location>()
-    val visits = TreeMap<Int, Visit>()
-    val visitsByUsers = TreeMap<UserVisitKey, Visit>()
-    val visitsByLocation = TreeMap<LocationVisitKey, Visit>()
+    val users = BTree<User>(Comparator { o1, o2 -> o1.id.compareTo(o2.id) }, CHUNK_SIZE)
+    val locations = BTree<Location>(Comparator { o1, o2 -> o1.id.compareTo(o2.id) }, CHUNK_SIZE)
+    val visits = BTree<Visit>(Comparator { o1, o2 -> o1.id.compareTo(o2.id) }, CHUNK_SIZE)
+    val visitsByUsers = BTree<Visit>(UserVisitComparator(), CHUNK_SIZE)
+    val visitsByLocation = BTree<Visit>(LocationVisitComparator(), CHUNK_SIZE)
 
     fun insert(user: User): Unit = mutex.withLock {
-        if (user.id in users) {
+        if (users[user] != null) {
             error("already inserted")
         }
         user.checkEntity()
-        users.put(user.id, user)
+        users.put(user)
     }
 
     fun insert(location: Location): Unit = mutex.withLock {
-        if (location.id in locations) {
+        if (locations[location] != null) {
             error("already inserted")
         }
         location.checkEntity()
-        locations.put(location.id, location)
+        locations.put(location)
     }
 
     fun insert(visit: Visit): Unit = mutex.withLock {
-        if (visit.id in visits) {
+        if (visits[visit] != null) {
             error("already inserted")
         }
         visit.checkEntity()
-        visits.put(visit.id, visit)
-        visitsByUsers.put(UserVisitKey(visit.user, visit.visitedAt, visit.id), visit)
-        visitsByLocation.put(LocationVisitKey(visit.location, visit.id), visit)
+        visits.put(visit)
+        visitsByUsers.put(visit)
+        visitsByLocation.put(visit)
     }
 
     fun updateUser(id: Int, block: () -> User): User? = mutex.withLock {
-        users[id]?.also {
+        users[User(id)]?.also {
             it.modify(block())
-
-            users.remove(id)
-            users.put(it.id, it)
+            users.put(it)
         }
     }
 
     fun updateLocation(id: Int, block: () -> Location): Location? = mutex.withLock {
-        locations[id]?.also {
+        locations[Location(id)]?.also {
             it.modify(block())
-
-            locations.remove(id)
-            locations.put(it.id, it)
+            locations.put(it)
         }
     }
 
     fun updateVisit(id: Int, block: () -> Visit): Visit? = mutex.withLock {
-        visits[id]?.also {
-            val oldKey1 = UserVisitKey(it.user, it.visitedAt, it.id)
-            val oldKey2 = LocationVisitKey(it.location, it.id)
+        visits[Visit(id)]?.also {
+            val new = Visit(it.id)
+            new[1] = it.location
+            new[2] = it.user
+            new[3] = it.visitedAt
+            new[4] = it.mark
 
-            it.modify(block())
+            new.modify(block())
 
-            visits.remove(id)
-            visitsByUsers.remove(oldKey1)
-            visitsByLocation.remove(oldKey2)
-            visits.put(it.id, it)
-            visitsByUsers.put(UserVisitKey(it.user, it.visitedAt, it.id), it)
-            visitsByLocation.put(LocationVisitKey(it.location, it.id), it)
+//            visitsByUsers.remove(old)
+//            visitsByLocation.remove(old) todo
+            visits.put(new)
+            visitsByUsers.put(new)
+            visitsByLocation.put(new)
         }
     }
 
     fun findUser(id: Int): User? {
-        return users[id]
+        return users[User(id)]
     }
 
     fun findLocation(id: Int): Location? {
-        return locations[id]
+        return locations[Location(id)]
     }
 
     fun findVisit(id: Int): Visit? {
-        return visits[id]
+        return visits[Visit(id)]
     }
 
     fun findOrderedVisitsByUserId(userId: Int, fromDate: Int?, toDate: Int?): Collection<Visit>? {
-        if (userId !in users) {
+        if (users[User(userId)] == null) {
             return null
         }
         if (fromDate != null && toDate != null && fromDate >= toDate) {
-            return emptyList<Visit>()
+            return emptyList()
         }
-        return visitsByUsers.subMap(
-                UserVisitKey(userId, fromDate ?: Int.MIN_VALUE, Int.MAX_VALUE), false,
-                UserVisitKey(userId, toDate ?: Int.MAX_VALUE, Int.MIN_VALUE), false
-        ).values
+        TODO()
+//        return visitsByUsers.subMap(
+//                UserVisitKey(userId, fromDate ?: Int.MIN_VALUE, Int.MAX_VALUE), false,
+//                UserVisitKey(userId, toDate ?: Int.MAX_VALUE, Int.MIN_VALUE), false
+//        ).values
     }
 
     fun findVisitsByLocationId(locationId: Int): Collection<Visit>?  {
-        if (locationId !in locations) {
+        if (locations[Location(locationId)] == null) {
             return null
         }
-        return visitsByLocation.subMap(
-                LocationVisitKey(locationId, Int.MIN_VALUE), false,
-                LocationVisitKey(locationId, Int.MAX_VALUE), false
-        ).values
+        TODO()
+//        return visitsByLocation.subMap(
+//                LocationVisitKey(locationId, Int.MIN_VALUE), false,
+//                LocationVisitKey(locationId, Int.MAX_VALUE), false
+//        ).values
     }
 }

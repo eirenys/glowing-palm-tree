@@ -1,56 +1,30 @@
 package io.highload.dao
 
+import io.highload.scheme.Visit
+
 /**
  *
  */
-class UserVisitKey(val user: Int, val visitedAt: Int, val id: Int) : Comparable<UserVisitKey> {
-    override fun compareTo(other: UserVisitKey): Int {
-        val cmp1 = user.compareTo(other.user)
+class UserVisitComparator() : Comparator<Visit> {
+    override fun compare(o1: Visit, other: Visit): Int {
+        val cmp1 = o1.user.compareTo(other.user)
         if (cmp1 == 0) {
-            val cmp2 = visitedAt.compareTo(other.visitedAt)
+            val cmp2 = o1.visitedAt.compareTo(other.visitedAt)
             if (cmp2 == 0) {
-                return id.compareTo(other.id)
+                return o1.id.compareTo(other.id)
             }
             return cmp2
         }
         return cmp1
     }
-
-    override fun hashCode(): Int = user xor visitedAt xor id
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) {
-            return true
-        }
-
-        if (other == null || this.javaClass != other.javaClass) {
-            return false
-        }
-        val o = other as UserVisitKey
-        return user == o.user && visitedAt == o.visitedAt && id == o.id
-    }
 }
 
-class LocationVisitKey(val location: Int, val id: Int) : Comparable<LocationVisitKey> {
-    override fun compareTo(other: LocationVisitKey): Int {
-        val cmp1 = location.compareTo(other.location)
+class LocationVisitComparator() : Comparator<Visit> {
+    override fun compare(o1: Visit, other: Visit): Int {
+        val cmp1 = o1.location.compareTo(other.location)
         if (cmp1 == 0) {
-            return id.compareTo(other.id)
+            return o1.id.compareTo(other.id)
         }
         return cmp1
-    }
-
-    override fun hashCode(): Int = location xor id
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) {
-            return true
-        }
-
-        if (other == null || this.javaClass != other.javaClass) {
-            return false
-        }
-        val o = other as LocationVisitKey
-        return location == o.location && id == o.id
     }
 }

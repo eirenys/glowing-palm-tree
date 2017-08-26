@@ -10,6 +10,8 @@ class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 64) : Iterable
     private var lowest = BTreeNode(comparator, nodeSize)
     private var nodes: Array<BTreeNode<T>> = emptyArray()
 
+    val size: Int get() = this.count()
+
     fun put(value: T): Boolean {
         val nodeIndex = findNodeIndex(value)
         loadNode(nodeIndex)
@@ -42,7 +44,7 @@ class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 64) : Iterable
         return index.exists
     }
 
-    fun get(value: T): T? {
+    operator fun get(value: T): T? {
         val nodeIndex = findNodeIndex(value)
         loadNode(nodeIndex)
         val node = if (nodeIndex == -1) lowest else nodes[nodeIndex]
