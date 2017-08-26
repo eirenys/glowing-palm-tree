@@ -3,7 +3,13 @@ package io.highload.scheme
 /**
  *
  */
-class User : Entity(6) {
+class User(id: Int = -1) : Entity(6) {
+    init {
+        if (id != -1) {
+            values[0] = id
+        }
+    }
+
     val id: Int get() = values[0] as Int
     val email: String get() = values[1] as String
     val firstName: String get() = values[2] as String

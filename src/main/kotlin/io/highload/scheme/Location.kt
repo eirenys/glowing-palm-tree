@@ -3,7 +3,13 @@ package io.highload.scheme
 /**
  *
  */
-class Location : Entity(5) {
+class Location(id: Int = -1) : Entity(5) {
+    init {
+        if (id != -1) {
+            values[0] = id
+        }
+    }
+
     val id: Int get() = values[0] as Int
     val place: String get() = values[1] as String
     val country: String get() = values[2] as String

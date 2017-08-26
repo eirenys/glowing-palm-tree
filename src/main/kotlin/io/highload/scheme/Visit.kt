@@ -3,7 +3,13 @@ package io.highload.scheme
 /**
  *
  */
-class Visit : Entity(5) {
+class Visit(id: Int = -1) : Entity(5) {
+    init {
+        if (id != -1) {
+            values[0] = id
+        }
+    }
+
     val id: Int get() = values[0] as Int
     val location: Int get() = values[1] as Int
     val user: Int get() = values[2] as Int
