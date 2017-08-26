@@ -1,6 +1,9 @@
 package io.highload.persistence
 
+import kotlinx.coroutines.experimental.newFixedThreadPoolContext
+import kotlinx.coroutines.experimental.run
 import kotlinx.coroutines.experimental.sync.Mutex
+import kotlinx.coroutines.experimental.sync.withLock
 import java.io.*
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
@@ -114,39 +117,62 @@ class BTreeNode<T>(val comparator: Comparator<T>, val capacity: Int) : Iterable<
     }
 
     fun unload() {
-        if (loaded) {
-            ObjectOutputStream(FileOutputStream(file)).use {
-                it.writeInt(size)
-                for (i in 0..size - 1) {
-                    it.writeObject(this[i])
-                }
-
-                savedMin = this[0]
-                isload = false
-                values = emptyArray()
-                buffer = emptyArray()
-                accessTime = Long.MAX_VALUE
+        ObjectOutputStream(FileOutputStream(file)).use {
+            it.writeInt(size)
+            for (i in 0..size - 1) {
+                it.writeObject(this[i])
             }
+
+            savedMin = this[0]
+            isload = false
+            values = emptyArray()
+            buffer = emptyArray()
+            accessTime = Long.MAX_VALUE
         }
     }
 
     fun load() {
-        if (!loaded) {
-            ObjectInputStream(FileInputStream(file)).use {
-                size = it.readInt()
-                values = arrayOfNulls(capacity)
-                buffer = arrayOfNulls(capacity)
-                for (i in 0..size - 1) {
-                    values[i] = it.readObject()
-                }
-                isload = true
+        ObjectInputStream(FileInputStream(file)).use {
+            size = it.readInt()
+            values = arrayOfNulls(capacity)
+            buffer = arrayOfNulls(capacity)
+            for (i in 0..size - 1) {
+                values[i] = it.readObject()
             }
+            isload = true
         }
     }
 
     override fun toString(): String = min.toString()
 
+    suspend fun awaitUnload() {
+        if (!loaded) {
+            return
+        }
+        mutex.withLock {
+            run(loaderContext) {
+                if (loaded) {
+                    unload()
+                }
+            }
+        }
+    }
+
+    suspend fun awaitLoad() {
+        if (loaded) {
+            return
+        }
+        mutex.withLock {
+            run(loaderContext) {
+                if (!loaded) {
+                    load()
+                }
+            }
+        }
+    }
+
     companion object {
         private val nextId = AtomicLong()
+        private val loaderContext = newFixedThreadPoolContext(10, "file-io")
     }
 }
