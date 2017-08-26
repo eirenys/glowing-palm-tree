@@ -21,10 +21,14 @@ object MetricsAggregator {
                 println(a)
                 print("cnt = $count, avg = " + (totalTime.get() / count.get()))
             }
-            val imp = endedImp.get() - startedImp.get()
-            if (imp != 0L) {
-                print(" $imp of ${startedImp.get()} ")
-            }
+
+            print(" ${endedImp.get()} of ${startedImp.get()} ")
+
+            val rntm = Runtime.getRuntime()
+            val memoryPerc = rntm.freeMemory() * 100 / rntm.maxMemory()
+            print(" mem = $memoryPerc%")
+
+            println()
         }
     }
 
