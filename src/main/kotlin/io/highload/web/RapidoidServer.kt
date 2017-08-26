@@ -52,20 +52,25 @@ class RapidoidServer(val handler: MainHandler) : AbstractHttpServer() {
     }
 
     protected inline fun RapidoidHelper.response(ctx: Channel, block: () -> ByteArray?): HttpStatus {
+        val keepAlive = isKeepAlive.value
         try {
             val json = block()
             if (json != null) {
-                return ok(ctx, isKeepAlive.value, json, medType)
+                startResponse(ctx, keepAlive)
+                writeBody(ctx, json, medType)
             } else {
-                return HttpStatus.NOT_FOUND
+                ctx.write(HTTP_404)
+                ctx.closeIf(!keepAlive)
             }
         } catch (e: Error) {
             e.printStackTrace()
             ctx.write(BAD_REQ)
-            return HttpStatus.DONE
+            ctx.closeIf(!keepAlive)
         } catch (e: Throwable) {
             ctx.write(BAD_REQ)
-            return HttpStatus.DONE
+            ctx.closeIf(!keepAlive)
         }
+
+        return HttpStatus.ASYNC
     }
 }
