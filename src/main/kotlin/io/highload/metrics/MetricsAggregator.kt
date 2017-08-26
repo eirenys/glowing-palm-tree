@@ -10,14 +10,20 @@ object MetricsAggregator {
     val mmm: AtomicReference<Metrics> = AtomicReference()
     val count = AtomicLong()
     val totalTime = AtomicLong()
+    val startedImp = AtomicLong()
+    val endedImp = AtomicLong()
 
-    fun startProduce() {
+    fun startProduce(local: Boolean) {
         while (true) {
-            Thread.sleep(5000)
+            Thread.sleep(if (local) 3000 else 30000)
             val a = mmm.get()
             if (a != null) {
                 println(a)
-                println("count = $count, totalTime = $totalTime, average = " + (totalTime.get() / count.get()))
+                print("cnt = $count, avg = " + (totalTime.get() / count.get()))
+            }
+            val imp = endedImp.get() - startedImp.get()
+            if (imp != 0L) {
+                print(" $imp of ${startedImp.get()} ")
             }
         }
     }

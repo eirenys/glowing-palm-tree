@@ -8,6 +8,8 @@ import io.highload.metrics.MetricsAggregator
 import io.highload.web.JacksonConverter
 import io.highload.web.MainHandler
 import io.highload.web.RapidoidServer
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.launch
 
 /**
  *
@@ -41,14 +43,17 @@ fun main(args: Array<String>) {
     } catch (e: Throwable) {
     }
 
-    val startTime = System.currentTimeMillis()
-    println("start data import")
-    ZipExtractor(dao, converter).extract(dataFile)
-    val time = (System.currentTimeMillis() - startTime) / 1000
-    println("data imported ($time sec)")
+    launch(CommonPool) {
+        val startTime = System.currentTimeMillis()
+        println("start data import")
+        ZipExtractor(dao, converter).extract(dataFile)
+        val time = (System.currentTimeMillis() - startTime) / 1000
+        println("data imported ($time sec)")
+    }
 
     Thread {
-        MetricsAggregator.startProduce()
+        MetricsAggregator.startProduce(local)
     }.start()
+
     RapidoidServer(handler).listen(port)
 }
