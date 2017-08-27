@@ -14,13 +14,13 @@ class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 4096) : Iterab
 
     val size: Int get() = this.count()
 
-    fun put(value: T): Boolean {
+    fun put(value: T) {
         val nodeIndex = findNodeIndex(value)
         loadNode(nodeIndex)
         val node = getNode(nodeIndex)
-        val index = node.findIndex(value)
 
         node.mutex.withLock {
+            val index = node.findIndex(value)
             if (index.exists) {
                 node.replace(index.position, value)
             } else {
@@ -45,8 +45,6 @@ class BTree<T>(val comparator: Comparator<T>, val nodeSize: Int = 4096) : Iterab
                 }
             }
         }
-
-        return index.exists
     }
 
     fun get(value: T): T? {
